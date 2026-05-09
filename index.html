@@ -232,7 +232,8 @@
       <button class="btn-choice" onclick="play('paper')"   aria-label="보">🖐️</button>
     </div>
 
-    <button class="btn-reset" onclick="resetAll()">점수 초기화</button>
+    <button class="btn-reset" onclick="reset()">다시하기</button>
+    <button class="btn-reset" onclick="resetAll()" style="margin-top:6px;opacity:0.6;font-size:0.76rem;">점수 초기화</button>
   </div>
 
   <script>
@@ -278,16 +279,20 @@
       el.classList.add('pop');
     }
 
-    function resetAll() {
-      score = { user: 0, comp: 0, draw: 0 };
-      document.getElementById('scoreUser').textContent = 0;
-      document.getElementById('scoreComp').textContent = 0;
-      document.getElementById('scoreDraw').textContent = 0;
+    function reset() {
       document.getElementById('userChoice').textContent = '✊';
       document.getElementById('compChoice').textContent = '✊';
       const el = document.getElementById('result');
       el.className = 'result';
       el.textContent = '선택하세요';
+    }
+
+    function resetAll() {
+      score = { user: 0, comp: 0, draw: 0 };
+      document.getElementById('scoreUser').textContent = 0;
+      document.getElementById('scoreComp').textContent = 0;
+      document.getElementById('scoreDraw').textContent = 0;
+      reset();
     }
   </script>
 </body>
