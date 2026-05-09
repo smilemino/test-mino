@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>할 일 목록</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 48px 16px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 24px;
+      padding: 40px 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .title {
+      color: #fff;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 28px;
+      letter-spacing: 0.02em;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+
+    .input-row input {
+      flex: 1;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      background: rgba(255, 255, 255, 0.18);
+      color: #fff;
+      font-size: 1rem;
+      outline: none;
+      transition: border 0.2s, background 0.2s;
+    }
+
+    .input-row input::placeholder { color: rgba(255, 255, 255, 0.55); }
+
+    .input-row input:focus {
+      border-color: rgba(255, 255, 255, 0.7);
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .btn-add {
+      padding: 12px 20px;
+      border-radius: 12px;
+      border: none;
+      background: #fff;
+      color: #764ba2;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-add:hover {
+      background: #f0eaff;
+      transform: scale(1.04);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+    }
+
+    .btn-add:active { transform: scale(0.97); }
+
+    .list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+
+    .item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 14px;
+      padding: 14px 16px;
+      transition: background 0.2s, opacity 0.2s;
+    }
+
+    .item:hover { background: rgba(255, 255, 255, 0.2); }
+
+    .item input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      accent-color: #fff;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .item-text {
+      flex: 1;
+      color: #fff;
+      font-size: 1rem;
+      transition: color 0.2s;
+      word-break: break-word;
+    }
+
+    .item.done .item-text {
+      text-decoration: line-through;
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .btn-del {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 6px;
+      transition: color 0.2s, background 0.2s;
+      flex-shrink: 0;
+    }
+
+    .btn-del:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .empty {
+      text-align: center;
+      color: rgba(255, 255, 255, 0.45);
+      font-size: 0.95rem;
+      padding: 20px 0;
+    }
+
+    @media (max-width: 520px) {
+      .card { padding: 28px 20px; }
+    }
+
+    .nav {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 4px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 50px;
+      padding: 6px 12px;
+      z-index: 100;
+    }
+
+    .nav a {
+      color: rgba(255, 255, 255, 0.75);
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 500;
+      padding: 4px 12px;
+      border-radius: 20px;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .nav a:hover, .nav a.on {
+      background: rgba(255, 255, 255, 0.22);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="index.html">카운터</a>
+    <a href="clock.html">시계</a>
+    <a href="todo.html" class="on">할 일</a>
+  </nav>
+  <div class="card">
+    <div class="title">할 일 목록</div>
+    <div class="input-row">
+      <input type="text" id="newTodo" placeholder="새 할 일을 입력하세요" maxlength="100" />
+      <button class="btn-add" onclick="addTodo()">추가</button>
+    </div>
+    <ul class="list" id="list"></ul>
+    <p class="empty" id="empty">할 일이 없습니다 🎉</p>
+  </div>
+
+  <script>
+    const KEY = 'todo-list-mino';
+    let todos = JSON.parse(localStorage.getItem(KEY) || '[]');
+
+    function save() { localStorage.setItem(KEY, JSON.stringify(todos)); }
+
+    function render() {
+      const list = document.getElementById('list');
+      const empty = document.getElementById('empty');
+      list.innerHTML = '';
+      empty.style.display = todos.length === 0 ? 'block' : 'none';
+
+      todos.forEach((todo, i) => {
+        const li = document.createElement('li');
+        li.className = 'item' + (todo.done ? ' done' : '');
+
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = todo.done;
+        cb.addEventListener('change', () => { todos[i].done = cb.checked; save(); render(); });
+
+        const span = document.createElement('span');
+        span.className = 'item-text';
+        span.textContent = todo.text;
+
+        const del = document.createElement('button');
+        del.className = 'btn-del';
+        del.textContent = '✕';
+        del.setAttribute('aria-label', '삭제');
+        del.addEventListener('click', () => { todos.splice(i, 1); save(); render(); });
+
+        li.append(cb, span, del);
+        list.appendChild(li);
+      });
+    }
+
+    function addTodo() {
+      const input = document.getElementById('newTodo');
+      const text = input.value.trim();
+      if (!text) return;
+      todos.push({ text, done: false });
+      save();
+      render();
+      input.value = '';
+      input.focus();
+    }
+
+    document.getElementById('newTodo').addEventListener('keydown', e => {
+      if (e.key === 'Enter') addTodo();
+    });
+
+    render();
+  </script>
+</body>
+</html>
