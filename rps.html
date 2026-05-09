@@ -229,7 +229,8 @@
       <button class="btn-choice" onclick="play('paper')"   title="보">✋</button>
     </div>
 
-    <button class="btn-reset" onclick="reset()">점수 초기화</button>
+    <button class="btn-reset" onclick="reset()">다시하기</button>
+    <button class="btn-reset" onclick="resetScore()" style="margin-top:6px;opacity:0.6;font-size:0.76rem;">점수 초기화</button>
   </div>
 
   <script>
@@ -275,14 +276,18 @@
     }
 
     function reset() {
-      myScore = 0; cpuScore = 0;
-      document.getElementById('myScore').textContent  = 0;
-      document.getElementById('cpuScore').textContent = 0;
       document.getElementById('myChoice').textContent  = '❓';
       document.getElementById('cpuChoice').textContent = '❓';
       const msg = document.getElementById('resultMsg');
       msg.textContent = '선택하세요!';
       msg.className = 'result-msg';
+    }
+
+    function resetScore() {
+      myScore = 0; cpuScore = 0;
+      document.getElementById('myScore').textContent  = 0;
+      document.getElementById('cpuScore').textContent = 0;
+      reset();
     }
   </script>
 </body>
