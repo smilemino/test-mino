@@ -6,7 +6,6 @@
   <title>가위바위보</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
@@ -16,7 +15,6 @@
       justify-content: center;
       padding: 80px 16px 32px;
     }
-
     .nav {
       position: fixed;
       top: 16px;
@@ -24,16 +22,15 @@
       transform: translateX(-50%);
       display: flex;
       gap: 4px;
-      background: rgba(255, 255, 255, 0.15);
+      background: rgba(255,255,255,0.15);
       backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.25);
+      border: 1px solid rgba(255,255,255,0.25);
       border-radius: 50px;
       padding: 6px 12px;
       z-index: 100;
     }
-
     .nav a {
-      color: rgba(255, 255, 255, 0.75);
+      color: rgba(255,255,255,0.75);
       text-decoration: none;
       font-size: 0.82rem;
       font-weight: 500;
@@ -41,64 +38,37 @@
       border-radius: 20px;
       transition: background 0.2s, color 0.2s;
     }
-
-    .nav a:hover, .nav a.on {
-      background: rgba(255, 255, 255, 0.22);
-      color: #fff;
-    }
-
+    .nav a:hover, .nav a.on { background: rgba(255,255,255,0.22); color: #fff; }
     .card {
-      background: rgba(255, 255, 255, 0.15);
+      background: rgba(255,255,255,0.15);
       backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
+      border: 1px solid rgba(255,255,255,0.3);
       border-radius: 24px;
       padding: 36px 40px;
       text-align: center;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
       width: 100%;
       max-width: 420px;
     }
-
     h1 {
       color: #fff;
       font-size: 1.4rem;
       font-weight: 700;
-      margin-bottom: 24px;
+      margin-bottom: 4px;
       letter-spacing: 0.05em;
     }
-
-    .scoreboard {
-      display: flex;
-      justify-content: space-around;
-      margin-bottom: 28px;
-    }
-
-    .score-box {
-      flex: 1;
-      padding: 12px 8px;
-    }
-
+    .hint { font-size: 0.7rem; color: rgba(255,255,255,0.45); margin-bottom: 20px; }
+    .scoreboard { display: flex; justify-content: space-around; margin-bottom: 28px; }
+    .score-box  { flex: 1; padding: 12px 8px; }
     .score-label {
-      color: rgba(255, 255, 255, 0.75);
+      color: rgba(255,255,255,0.75);
       font-size: 0.75rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       margin-bottom: 4px;
     }
-
-    .score-num {
-      color: #fff;
-      font-size: 2.4rem;
-      font-weight: 700;
-      line-height: 1;
-    }
-
-    .divider {
-      width: 1px;
-      background: rgba(255, 255, 255, 0.25);
-      margin: 8px 0;
-    }
-
+    .score-num { color: #fff; font-size: 2.4rem; font-weight: 700; line-height: 1; }
+    .divider   { width: 1px; background: rgba(255,255,255,0.25); margin: 8px 0; }
     .arena {
       display: flex;
       align-items: center;
@@ -106,30 +76,14 @@
       margin-bottom: 20px;
       min-height: 90px;
     }
-
-    .choice-display {
-      font-size: 3.5rem;
-      line-height: 1;
-      transition: transform 0.2s ease;
-    }
-
-    .choice-display.pop {
-      animation: pop 0.25s ease;
-    }
-
+    .choice-display { font-size: 3.5rem; line-height: 1; transition: transform 0.2s ease; }
+    .choice-display.pop { animation: pop 0.25s ease; }
     @keyframes pop {
       0%   { transform: scale(1); }
       50%  { transform: scale(1.35); }
       100% { transform: scale(1); }
     }
-
-    .vs {
-      color: rgba(255, 255, 255, 0.5);
-      font-size: 0.9rem;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-    }
-
+    .vs { color: rgba(255,255,255,0.5); font-size: 0.9rem; font-weight: 600; letter-spacing: 0.1em; }
     .result {
       color: #fff;
       font-size: 1.25rem;
@@ -138,18 +92,15 @@
       margin-bottom: 24px;
       letter-spacing: 0.05em;
     }
-
-    .result.win   { color: #ffe566; }
-    .result.lose  { color: rgba(255,255,255,0.55); }
-    .result.draw  { color: #b8f0ff; }
-
+    .result.win  { color: #ffe566; }
+    .result.lose { color: rgba(255,255,255,0.55); }
+    .result.draw { color: #b8f0ff; }
     .choices {
       display: flex;
       gap: 12px;
       justify-content: center;
       margin-bottom: 16px;
     }
-
     .btn-choice {
       width: 76px;
       height: 76px;
@@ -162,16 +113,12 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-direction: column;
+      position: relative;
     }
-
-    .btn-choice:hover {
-      background: rgba(255,255,255,0.32);
-      transform: scale(1.1);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.18);
-    }
-
+    .btn-choice:hover { background: rgba(255,255,255,0.32); transform: scale(1.1); box-shadow: 0 6px 20px rgba(0,0,0,0.18); }
     .btn-choice:active { transform: scale(0.95); }
-
+    .btn-choice .key { font-size: 0.55rem; color: rgba(255,255,255,0.45); margin-top: 2px; }
     .btn-reset {
       background: rgba(255,255,255,0.2);
       border: 1px solid rgba(255,255,255,0.35);
@@ -184,11 +131,7 @@
       letter-spacing: 0.06em;
       transition: background 0.18s, color 0.18s;
     }
-
-    .btn-reset:hover {
-      background: rgba(255,255,255,0.32);
-      color: #fff;
-    }
+    .btn-reset:hover { background: rgba(255,255,255,0.32); color: #fff; }
   </style>
 </head>
 <body>
@@ -200,6 +143,7 @@
 
   <div class="card">
     <h1>가위바위보</h1>
+    <p class="hint">키보드: 1 바위 · 2 가위 · 3 보 · R 다시하기</p>
 
     <div class="scoreboard">
       <div class="score-box">
@@ -227,28 +171,28 @@
     <div class="result" id="result">선택하세요</div>
 
     <div class="choices">
-      <button class="btn-choice" onclick="play('rock')"    aria-label="바위">✊</button>
-      <button class="btn-choice" onclick="play('scissors')" aria-label="가위">✌️</button>
-      <button class="btn-choice" onclick="play('paper')"   aria-label="보">🖐️</button>
+      <button class="btn-choice" onclick="play('rock')"     aria-label="바위">✊<span class="key">1</span></button>
+      <button class="btn-choice" onclick="play('scissors')" aria-label="가위">✌️<span class="key">2</span></button>
+      <button class="btn-choice" onclick="play('paper')"    aria-label="보">🖐️<span class="key">3</span></button>
     </div>
 
-    <button class="btn-reset" onclick="reset()">다시하기</button>
+    <button class="btn-reset" onclick="reset()">다시하기 [R]</button>
     <button class="btn-reset" onclick="resetAll()" style="margin-top:6px;opacity:0.6;font-size:0.76rem;">점수 초기화</button>
   </div>
 
   <script>
-    const EMOJI = { rock: '✊', scissors: '✌️', paper: '🖐️' };
+    const EMOJI   = { rock: '✊', scissors: '✌️', paper: '🖐️' };
     const CHOICES = ['rock', 'scissors', 'paper'];
     let score = { user: 0, comp: 0, draw: 0 };
 
     function play(userPick) {
       const compPick = CHOICES[Math.floor(Math.random() * 3)];
-      const outcome = judge(userPick, compPick);
+      const outcome  = judge(userPick, compPick);
 
       setDisplay('userChoice', EMOJI[userPick]);
       setDisplay('compChoice', EMOJI[compPick]);
 
-      if (outcome === 'win')       { score.user++; showResult('win', '이겼습니다! 🎉'); }
+      if (outcome === 'win')       { score.user++; showResult('win',  '이겼습니다! 🎉'); }
       else if (outcome === 'lose') { score.comp++; showResult('lose', '졌습니다 😢'); }
       else                         { score.draw++; showResult('draw', '비겼습니다 🤝'); }
 
@@ -259,9 +203,7 @@
 
     function judge(u, c) {
       if (u === c) return 'draw';
-      if ((u === 'rock' && c === 'scissors') ||
-          (u === 'scissors' && c === 'paper') ||
-          (u === 'paper' && c === 'rock')) return 'win';
+      if ((u==='rock'&&c==='scissors') || (u==='scissors'&&c==='paper') || (u==='paper'&&c==='rock')) return 'win';
       return 'lose';
     }
 
@@ -294,6 +236,14 @@
       document.getElementById('scoreDraw').textContent = 0;
       reset();
     }
+
+    document.addEventListener('keydown', (e) => {
+      const k = e.key.toLowerCase();
+      if (k === '1') play('rock');
+      else if (k === '2') play('scissors');
+      else if (k === '3') play('paper');
+      else if (k === 'r') reset();
+    });
   </script>
 </body>
 </html>
