@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>고스톱</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+    background: linear-gradient(135deg, #1a4d2e 0%, #0d3320 100%);
+    color: #fff;
+    min-height: 100vh;
+    padding: 12px;
+    user-select: none;
+  }
+  #game {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-rows: auto auto 1fr auto auto;
+    gap: 10px;
+  }
+  .scoreboard {
+    background: rgba(0,0,0,0.4);
+    border-radius: 10px;
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    border: 1px solid rgba(255,215,0,0.3);
+  }
+  .player-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 140px;
+  }
+  .player-info .name { font-size: 14px; opacity: 0.85; }
+  .player-info .score {
+    font-size: 28px; font-weight: 700; color: #ffd700;
+    text-shadow: 0 0 8px rgba(255,215,0,0.4);
+  }
+  .player-info .taken {
+    display: flex; gap: 4px; margin-top: 4px; font-size: 11px;
+    color: #aaa;
+  }
+  .turn-display {
+    text-align: center; flex: 1;
+    font-size: 16px; font-weight: 600;
+  }
+  .turn-display .badge {
+    display: inline-block; padding: 4px 12px; border-radius: 16px;
+    background: rgba(255,215,0,0.2); color: #ffd700;
+  }
+  .hand-row, .field-row {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    justify-content: center; align-items: center;
+    min-height: 110px;
+    padding: 10px;
+    background: rgba(0,0,0,0.25);
+    border-radius: 10px;
+  }
+  .field-row {
+    min-height: 240px;
+    background: radial-gradient(ellipse at center, rgba(34,89,53,0.6) 0%, rgba(0,0,0,0.35) 100%);
+    border: 2px dashed rgba(255,255,255,0.15);
+    flex-direction: column;
+  }
+  .field-by-month {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    justify-content: center; align-items: center;
+    width: 100%;
+  }
+  .month-pile {
+    display: flex; flex-direction: row;
+    gap: 2px;
+  }
+  .month-pile .card { margin-left: -28px; }
+  .month-pile .card:first-child { margin-left: 0; }
+  .deck-area {
+    display: flex; gap: 12px; align-items: center; justify-content: center;
+    margin-top: 8px;
+  }
+  .deck {
+    width: 60px; height: 90px;
+    background: linear-gradient(135deg, #c0392b 0%, #8b1a1a 100%);
+    border-radius: 6px;
+    border: 2px solid #ffd700;
+    display: flex; align-items: center; justify-content: center;
+    color: #ffd700; font-weight: 700; font-size: 11px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+  }
+  .card {
+    width: 60px; height: 90px;
+    border-radius: 6px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: space-between;
+    padding: 4px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    border: 1.5px solid rgba(0,0,0,0.5);
+    font-size: 10px;
+    color: #222;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .card.back {
+    background: linear-gradient(135deg, #c0392b 0%, #8b1a1a 100%);
+    color: #ffd700;
+    align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700;
+  }
+  .card.playable:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 16px rgba(255,215,0,0.5);
+    z-index: 10;
+  }
+  .card.selectable {
+    box-shadow: 0 0 0 3px #ffd700, 0 4px 8px rgba(0,0,0,0.4);
+    animation: pulse 1s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 3px #ffd700, 0 4px 8px rgba(0,0,0,0.4); }
+    50% { box-shadow: 0 0 0 5px #fff176, 0 4px 12px rgba(255,215,0,0.7); }
+  }
+  .card .month-tag {
+    font-size: 9px; font-weight: 700;
+    background: rgba(0,0,0,0.6); color: #fff;
+    padding: 1px 4px; border-radius: 3px;
+    align-self: flex-start;
+  }
+  .card .emoji { font-size: 24px; line-height: 1; }
+  .card .name { font-size: 9px; font-weight: 700; text-align: center; }
+  .card .type-tag {
+    font-size: 8px; font-weight: 700;
+    padding: 1px 4px; border-radius: 3px;
+    align-self: flex-end;
+  }
+  .type-광 { background: #ffd700; color: #5a3a00; }
+  .type-끗 { background: #ff8c42; color: #fff; }
+  .type-띠 { background: #e74c3c; color: #fff; }
+  .type-피 { background: #95a5a6; color: #fff; }
+  .type-쌍피 { background: #2c3e50; color: #ffd700; }
+  .card.bg-광 { background: linear-gradient(135deg, #fff8dc, #ffe4b5); }
+  .card.bg-끗 { background: linear-gradient(135deg, #ffe4c4, #ffdab9); }
+  .card.bg-띠 { background: linear-gradient(135deg, #ffe4e1, #ffc0cb); }
+  .card.bg-피 { background: linear-gradient(135deg, #f5f5f5, #d3d3d3); }
+  .card.bg-쌍피 { background: linear-gradient(135deg, #e0e0e0, #b0b0b0); }
+  #log-panel {
+    background: rgba(0,0,0,0.4);
+    border-radius: 10px;
+    padding: 8px 12px;
+    height: 90px;
+    overflow-y: auto;
+    font-size: 13px;
+    line-height: 1.5;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  #log-panel .entry { padding: 2px 0; }
+  #log-panel .entry.player { color: #87ceeb; }
+  #log-panel .entry.ai { color: #ffb6c1; }
+  #log-panel .entry.system { color: #ffd700; }
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.75);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100;
+  }
+  .modal {
+    background: linear-gradient(135deg, #2c3e50, #1a4d2e);
+    border: 2px solid #ffd700;
+    border-radius: 12px;
+    padding: 28px 36px;
+    text-align: center;
+    max-width: 420px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  }
+  .modal h2 { color: #ffd700; margin-bottom: 14px; font-size: 24px; }
+  .modal p { margin-bottom: 16px; line-height: 1.6; }
+  .modal-buttons {
+    display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+  }
+  .btn {
+    padding: 10px 22px;
+    border: none; border-radius: 8px;
+    font-size: 15px; font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.1s;
+    font-family: inherit;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.4); }
+  .btn-go { background: #e74c3c; color: #fff; }
+  .btn-stop { background: #3498db; color: #fff; }
+  .btn-restart { background: #ffd700; color: #5a3a00; }
+  .breakdown {
+    text-align: left; font-size: 13px;
+    background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px;
+    margin: 10px 0;
+  }
+  .breakdown .row { display: flex; justify-content: space-between; padding: 2px 0; }
+</style>
+</head>
+<body>
+<div id="game">
+  <div class="scoreboard">
+    <div class="player-info">
+      <div class="name">🤖 컴퓨터</div>
+      <div class="score" id="ai-score">0점</div>
+      <div class="taken" id="ai-taken-summary">광0 끗0 띠0 피0</div>
+    </div>
+    <div class="turn-display">
+      <div class="badge" id="turn-badge">민호님 차례</div>
+      <div style="font-size:12px;opacity:0.7;margin-top:4px;" id="phase-text">손에서 카드를 선택하세요</div>
+    </div>
+    <div class="player-info">
+      <div class="name">😊 민호님</div>
+      <div class="score" id="player-score">0점</div>
+      <div class="taken" id="player-taken-summary">광0 끗0 띠0 피0</div>
+    </div>
+  </div>
+  <div class="hand-row" id="ai-hand"></div>
+  <div class="field-row">
+    <div class="field-by-month" id="field"></div>
+    <div class="deck-area">
+      <div class="deck" id="deck">덱<br><span id="deck-count">0</span>장</div>
+    </div>
+  </div>
+  <div class="hand-row" id="player-hand"></div>
+  <div id="log-panel"></div>
+</div>
+<div id="modal-root"></div>
+<script>
+(function(){
+  'use strict';
+  const HWATU = [
+    {m:1,t:'광',n:'송학',e:'🌲🦢'},{m:1,t:'띠',n:'홍단',e:'🌲'},{m:1,t:'피',n:'송피',e:'🌲'},{m:1,t:'피',n:'송피',e:'🌲'},
+    {m:2,t:'끗',n:'매조',e:'🌸🐦'},{m:2,t:'띠',n:'홍단',e:'🌸'},{m:2,t:'피',n:'매피',e:'🌸'},{m:2,t:'피',n:'매피',e:'🌸'},
+    {m:3,t:'광',n:'벚꽃',e:'🌸🎏'},{m:3,t:'띠',n:'홍단',e:'🌸'},{m:3,t:'피',n:'벚피',e:'🌸'},{m:3,t:'피',n:'벚피',e:'🌸'},
+    {m:4,t:'끗',n:'흑싸리',e:'🦅'},{m:4,t:'띠',n:'초단',e:'🍃'},{m:4,t:'피',n:'흑피',e:'🍃'},{m:4,t:'피',n:'흑피',e:'🍃'},
+    {m:5,t:'끗',n:'난초',e:'🌿'},{m:5,t:'띠',n:'초단',e:'🌿'},{m:5,t:'피',n:'난피',e:'🌿'},{m:5,t:'피',n:'난피',e:'🌿'},
+    {m:6,t:'끗',n:'모란',e:'🦋🌺'},{m:6,t:'띠',n:'청단',e:'🌺'},{m:6,t:'피',n:'모피',e:'🌺'},{m:6,t:'피',n:'모피',e:'🌺'},
+    {m:7,t:'끗',n:'홍싸리',e:'🐗🌾'},{m:7,t:'띠',n:'초단',e:'🌾'},{m:7,t:'피',n:'홍피',e:'🌾'},{m:7,t:'피',n:'홍피',e:'🌾'},
+    {m:8,t:'광',n:'공산',e:'🌕⛰️'},{m:8,t:'끗',n:'기러기',e:'🦢🦢'},{m:8,t:'피',n:'공피',e:'⛰️'},{m:8,t:'피',n:'공피',e:'⛰️'},
+    {m:9,t:'끗',n:'국화술',e:'🍶🌼'},{m:9,t:'띠',n:'청단',e:'🌼'},{m:9,t:'피',n:'국피',e:'🌼'},{m:9,t:'피',n:'국피',e:'🌼'},
+    {m:10,t:'끗',n:'사슴',e:'🦌🍁'},{m:10,t:'띠',n:'청단',e:'🍁'},{m:10,t:'피',n:'단피',e:'🍁'},{m:10,t:'피',n:'단피',e:'🍁'},
+    {m:11,t:'광',n:'오동',e:'🐦🌳'},{m:11,t:'피',n:'동피',e:'🌳'},{m:11,t:'피',n:'동피',e:'🌳'},{m:11,t:'쌍피',n:'동쌍피',e:'🌳🌳'},
+    {m:12,t:'광',n:'비광',e:'☔🐸'},{m:12,t:'끗',n:'제비',e:'🐦☔'},{m:12,t:'띠',n:'비띠',e:'☔'},{m:12,t:'피',n:'비피',e:'☔'}
+  ];
+
+  const state = {
+    deck: [], field: [],
+    player: {hand:[], taken:[]},
+    ai:     {hand:[], taken:[]},
+    turn: 'player',
+    phase: 'select',
+    selectedHandIdx: null,
+    pendingCard: null,
+    pendingFieldMatches: [],
+    log: [],
+    gameOver: false,
+    pendingGoBy: null
+  };
+
+  function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+  function clone(c){ return {...c, _id: Math.random().toString(36).slice(2,8)}; }
+  function deal(){
+    const deck = shuffle(HWATU.map(clone));
+    state.player.hand = deck.splice(0,10);
+    state.ai.hand = deck.splice(0,10);
+    state.field = deck.splice(0,8);
+    state.deck = deck;
+  }
+
+  function cardEl(c, opts={}){
+    const d = document.createElement('div');
+    if (opts.back) { d.className = 'card back'; d.textContent = '花'; return d; }
+    d.className = `card bg-${c.t}` + (opts.playable?' playable':'') + (opts.selectable?' selectable':'');
+    d.innerHTML = `
+      <div class="month-tag">${c.m}월</div>
+      <div class="emoji">${c.e}</div>
+      <div class="name">${c.n}</div>
+      <div class="type-tag type-${c.t}">${c.t}</div>
+    `;
+    if (opts.onClick) d.addEventListener('click', opts.onClick);
+    return d;
+  }
+
+  function groupFieldByMonth(){
+    const g = {};
+    for (const c of state.field) { (g[c.m] ||= []).push(c); }
+    return g;
+  }
+
+  function render(){
+    const aiHand = document.getElementById('ai-hand');
+    aiHand.innerHTML = '';
+    for (let i=0;i<state.ai.hand.length;i++) aiHand.appendChild(cardEl(null,{back:true}));
+
+    const field = document.getElementById('field');
+    field.innerHTML = '';
+    const groups = groupFieldByMonth();
+    for (const m of Object.keys(groups).sort((a,b)=>+a-+b)){
+      const pile = document.createElement('div');
+      pile.className = 'month-pile';
+      for (const c of groups[m]){
+        const sel = state.phase==='match' && state.pendingFieldMatches.some(x=>x._id===c._id);
+        pile.appendChild(cardEl(c,{
+          selectable: sel,
+          onClick: sel ? ()=>onPickFieldMatch(c) : null
+        }));
+      }
+      field.appendChild(pile);
+    }
+
+    const ph = document.getElementById('player-hand');
+    ph.innerHTML = '';
+    state.player.hand.forEach((c,i)=>{
+      const playable = state.turn==='player' && state.phase==='select' && !state.gameOver;
+      ph.appendChild(cardEl(c,{
+        playable,
+        selectable: state.selectedHandIdx===i,
+        onClick: playable ? ()=>onSelectHand(i) : null
+      }));
+    });
+
+    document.getElementById('deck-count').textContent = state.deck.length;
+    document.getElementById('player-score').textContent = computeScore(state.player).total + '점';
+    document.getElementById('ai-score').textContent = computeScore(state.ai).total + '점';
+    document.getElementById('player-taken-summary').textContent = takenSummary(state.player);
+    document.getElementById('ai-taken-summary').textContent = takenSummary(state.ai);
+    document.getElementById('turn-badge').textContent = state.gameOver ? '게임 종료' : (state.turn==='player'?'😊 민호님 차례':'🤖 컴퓨터 차례');
+    document.getElementById('phase-text').textContent = phaseText();
+
+    const lp = document.getElementById('log-panel');
+    lp.innerHTML = state.log.slice(-30).map(l=>`<div class="entry ${l.who}">${l.text}</div>`).join('');
+    lp.scrollTop = lp.scrollHeight;
+  }
+
+  function takenSummary(p){
+    let g=0,k=0,d=0,pi=0;
+    for (const c of p.taken){
+      if (c.t==='광') g++;
+      else if (c.t==='끗') k++;
+      else if (c.t==='띠') d++;
+      else if (c.t==='피') pi++;
+      else if (c.t==='쌍피') pi+=2;
+    }
+    return `광${g} 끗${k} 띠${d} 피${pi}`;
+  }
+
+  function phaseText(){
+    if (state.gameOver) return '게임이 끝났습니다';
+    if (state.turn==='ai') return '컴퓨터가 생각 중...';
+    if (state.phase==='select') return '손에서 카드를 선택하세요';
+    if (state.phase==='match') return '같은 월의 바닥패를 선택하세요';
+    return '';
+  }
+
+  function computeScore(p){
+    let g=0,k=0,d=0,pi=0,blueDan=0,redDan=0,grassDan=0;
+    let hasBigwang=false;
+    for (const c of p.taken){
+      if (c.t==='광'){ g++; if (c.m===11) hasBigwang=true; }
+      else if (c.t==='끗') k++;
+      else if (c.t==='띠'){
+        d++;
+        if ([1,2,3].includes(c.m)) redDan++;
+        else if ([4,5,7].includes(c.m)) grassDan++;
+        else if ([6,9,10].includes(c.m)) blueDan++;
+      }
+      else if (c.t==='피') pi++;
+      else if (c.t==='쌍피') pi+=2;
+    }
+    let total = 0;
+    let kw = 0;
+    if (g===5) kw=15;
+    else if (g===4) kw=4;
+    else if (g===3) kw=hasBigwang?2:3;
+    total += kw;
+    if (k>=5) total += (k-4);
+    if (d>=5) total += (d-4);
+    if (pi>=10) total += (pi-9);
+    if (redDan>=3) total += 3;
+    if (grassDan>=3) total += 3;
+    if (blueDan>=3) total += 3;
+    return {total, g, k, d, pi, kw, redDan, grassDan, blueDan};
+  }
+
+  function log(text, who='system'){ state.log.push({text, who}); }
+
+  function onSelectHand(i){
+    state.selectedHandIdx = i;
+    const card = state.player.hand[i];
+    const matches = state.field.filter(f=>f.m===card.m);
+    if (matches.length === 0){
+      playToField('player', i);
+    } else if (matches.length === 1){
+      takeMatch('player', i, matches[0]);
+    } else {
+      state.phase = 'match';
+      state.pendingCard = card;
+      state.pendingFieldMatches = matches;
+      render();
+    }
+  }
+
+  function onPickFieldMatch(c){
+    const i = state.selectedHandIdx;
+    state.phase = 'select';
+    state.pendingFieldMatches = [];
+    takeMatch('player', i, c);
+  }
+
+  function playToField(who, i){
+    const p = state[who];
+    const card = p.hand.splice(i,1)[0];
+    state.field.push(card);
+    log(`${who==='player'?'민호님':'컴퓨터'}가 ${card.m}월 ${card.n}을(를) 바닥에 냈습니다.`, who);
+    afterHandPlay(who);
+  }
+
+  function takeMatch(who, handIdx, fieldCard){
+    const p = state[who];
+    const card = p.hand.splice(handIdx,1)[0];
+    state.field = state.field.filter(c=>c._id!==fieldCard._id);
+    p.taken.push(card, fieldCard);
+    log(`${who==='player'?'민호님':'컴퓨터'}가 ${card.m}월 패를 먹었습니다.`, who);
+    afterHandPlay(who);
+  }
+
+  function afterHandPlay(who){
+    state.selectedHandIdx = null;
+    render();
+    setTimeout(()=>flipDeck(who), 500);
+  }
+
+  function flipDeck(who){
+    if (state.deck.length === 0){ endTurn(who); return; }
+    const flipped = state.deck.shift();
+    const matches = state.field.filter(f=>f.m===flipped.m);
+    if (matches.length === 0){
+      state.field.push(flipped);
+      log(`덱: ${flipped.m}월 ${flipped.n} 뒤집기 → 짝 없음, 바닥에 놓임`, 'system');
+      render();
+      setTimeout(()=>endTurn(who), 700);
+    } else if (matches.length === 1){
+      const target = matches[0];
+      state.field = state.field.filter(c=>c._id!==target._id);
+      state[who].taken.push(flipped, target);
+      log(`덱: ${flipped.m}월 뒤집기 → ${who==='player'?'민호님':'컴퓨터'} 먹음!`, who);
+      render();
+      setTimeout(()=>endTurn(who), 700);
+    } else {
+      const pick = who==='player' ? matches[Math.floor(Math.random()*matches.length)] : matches[Math.floor(Math.random()*matches.length)];
+      state.field = state.field.filter(c=>c._id!==pick._id);
+      state[who].taken.push(flipped, pick);
+      log(`덱: ${flipped.m}월 뒤집기 → 다중 후보 중 1장 먹음`, who);
+      render();
+      setTimeout(()=>endTurn(who), 700);
+    }
+  }
+
+  function endTurn(who){
+    const sc = computeScore(state[who]);
+    const prevScore = state[who]._lastScore || 0;
+    state[who]._lastScore = sc.total;
+    if (sc.total >= 7 && sc.total > prevScore){
+      if (who==='player'){
+        showGoStopModal();
+        return;
+      } else {
+        const goCount = state.ai._goCount || 0;
+        if (goCount < 2 && Math.random() < 0.6){
+          state.ai._goCount = goCount + 1;
+          log(`🤖 컴퓨터: ${sc.total}점 → 고!`, 'ai');
+          nextTurn();
+        } else {
+          endGame('ai');
+          return;
+        }
+      }
+    }
+    if (state.player.hand.length === 0 && state.ai.hand.length === 0){
+      const ps = computeScore(state.player).total, as = computeScore(state.ai).total;
+      if (ps > as) endGame('player');
+      else if (as > ps) endGame('ai');
+      else endGame('draw');
+      return;
+    }
+    nextTurn();
+  }
+
+  function nextTurn(){
+    state.turn = state.turn==='player' ? 'ai' : 'player';
+    state.phase = 'select';
+    render();
+    if (state.turn==='ai' && !state.gameOver) setTimeout(aiMove, 900);
+  }
+
+  function aiMove(){
+    if (state.ai.hand.length === 0) { endTurn('ai'); return; }
+    let bestIdx = 0, bestScore = -1;
+    for (let i=0;i<state.ai.hand.length;i++){
+      const c = state.ai.hand[i];
+      const m = state.field.filter(f=>f.m===c.m).length;
+      let s = 0;
+      if (m===1) s = 10 + (c.t==='광'?5:c.t==='끗'?3:c.t==='띠'?2:1);
+      else if (m===2) s = 8;
+      else if (m===3) s = 12;
+      else s = c.t==='피' ? 2 : 1;
+      if (s > bestScore){ bestScore = s; bestIdx = i; }
+    }
+    const card = state.ai.hand[bestIdx];
+    const matches = state.field.filter(f=>f.m===card.m);
+    if (matches.length === 0) playToField('ai', bestIdx);
+    else takeMatch('ai', bestIdx, matches[0]);
+  }
+
+  function showGoStopModal(){
+    const sc = computeScore(state.player);
+    const root = document.getElementById('modal-root');
+    root.innerHTML = `
+      <div class="modal-overlay">
+        <div class="modal">
+          <h2>🎉 ${sc.total}점 달성!</h2>
+          <div class="breakdown">
+            ${sc.kw?`<div class="row"><span>광 (${sc.g}장)</span><span>${sc.kw}점</span></div>`:''}
+            ${sc.k>=5?`<div class="row"><span>끗 (${sc.k}장)</span><span>${sc.k-4}점</span></div>`:''}
+            ${sc.d>=5?`<div class="row"><span>띠 (${sc.d}장)</span><span>${sc.d-4}점</span></div>`:''}
+            ${sc.pi>=10?`<div class="row"><span>피 (${sc.pi}장)</span><span>${sc.pi-9}점</span></div>`:''}
+            ${sc.redDan>=3?`<div class="row"><span>홍단</span><span>3점</span></div>`:''}
+            ${sc.grassDan>=3?`<div class="row"><span>초단</span><span>3점</span></div>`:''}
+            ${sc.blueDan>=3?`<div class="row"><span>청단</span><span>3점</span></div>`:''}
+          </div>
+          <p>"고"를 선택하면 계속 진행, "스톱"을 선택하면 승리합니다.</p>
+          <div class="modal-buttons">
+            <button class="btn btn-go" id="btn-go">고!</button>
+            <button class="btn btn-stop" id="btn-stop">스톱!</button>
+          </div>
+        </div>
+      </div>`;
+    document.getElementById('btn-go').onclick = ()=>{
+      root.innerHTML = '';
+      log('😊 민호님: 고!', 'player');
+      state.player._goCount = (state.player._goCount||0) + 1;
+      nextTurn();
+    };
+    document.getElementById('btn-stop').onclick = ()=>{
+      root.innerHTML = '';
+      endGame('player');
+    };
+  }
+
+  function endGame(winner){
+    state.gameOver = true;
+    const ps = computeScore(state.player).total, as = computeScore(state.ai).total;
+    let msg;
+    if (winner==='player') msg = `🎉 민호님 승리! (${ps}점 vs ${as}점)`;
+    else if (winner==='ai') msg = `😢 컴퓨터 승리... (${ps}점 vs ${as}점)`;
+    else msg = `🤝 무승부 (${ps}점 vs ${as}점)`;
+    log(msg, 'system');
+    render();
+    const root = document.getElementById('modal-root');
+    root.innerHTML = `
+      <div class="modal-overlay">
+        <div class="modal">
+          <h2>${msg}</h2>
+          <div class="breakdown">
+            <div class="row"><strong>민호님</strong><span>${ps}점 (${takenSummary(state.player)})</span></div>
+            <div class="row"><strong>컴퓨터</strong><span>${as}점 (${takenSummary(state.ai)})</span></div>
+          </div>
+          <div class="modal-buttons">
+            <button class="btn btn-restart" id="btn-restart">다시 시작</button>
+          </div>
+        </div>
+      </div>`;
+    document.getElementById('btn-restart').onclick = init;
+  }
+
+  function init(){
+    state.deck = []; state.field = [];
+    state.player = {hand:[], taken:[]};
+    state.ai = {hand:[], taken:[]};
+    state.turn = 'player'; state.phase = 'select';
+    state.selectedHandIdx = null; state.pendingCard = null;
+    state.pendingFieldMatches = []; state.log = [];
+    state.gameOver = false;
+    document.getElementById('modal-root').innerHTML = '';
+    deal();
+    log('🎴 게임 시작! 손패 10장 / 바닥 8장 / 덱 ' + state.deck.length + '장', 'system');
+    log('💡 같은 월 패가 있으면 먹고, 없으면 바닥에 내려놓고 덱을 뒤집습니다.', 'system');
+    render();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
