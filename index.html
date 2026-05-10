@@ -3,53 +3,36 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>가위바위보</title>
+  <title>주사위 게임</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <nav class="nav">
-    <a href="index.html" class="on">가위바위보</a>
-    <a href="clock.html">시계</a>
-    <a href="todo.html">할 일</a>
-  </nav>
-
   <div class="card">
-    <h1>가위바위보</h1>
-    <p class="hint">키보드: 1 바위 · 2 가위 · 3 보 · R 다시하기</p>
+    <h1>주사위 게임</h1>
+    <p class="hint">스페이스바 또는 버튼으로 굴리기 · R 초기화</p>
+
+    <div class="dice" id="dice">⚀</div>
+    <div class="result" id="result">굴려보세요</div>
 
     <div class="scoreboard">
       <div class="score-box">
-        <div class="score-label">나</div>
-        <div class="score-num" id="scoreUser">0</div>
+        <div class="score-label">굴린 횟수</div>
+        <div class="score-num" id="rolls">0</div>
       </div>
       <div class="divider"></div>
       <div class="score-box">
-        <div class="score-label">무승부</div>
-        <div class="score-num" id="scoreDraw">0</div>
+        <div class="score-label">합계</div>
+        <div class="score-num" id="sum">0</div>
       </div>
       <div class="divider"></div>
       <div class="score-box">
-        <div class="score-label">컴퓨터</div>
-        <div class="score-num" id="scoreComp">0</div>
+        <div class="score-label">최고 기록</div>
+        <div class="score-num" id="best">0</div>
       </div>
     </div>
 
-    <div class="arena">
-      <div class="choice-display" id="userChoice">✊</div>
-      <div class="vs">VS</div>
-      <div class="choice-display" id="compChoice">✊</div>
-    </div>
-
-    <div class="result" id="result">선택하세요</div>
-
-    <div class="choices">
-      <button class="btn-choice" onclick="play('rock')"     aria-label="바위">✊<span class="key">1</span></button>
-      <button class="btn-choice" onclick="play('scissors')" aria-label="가위">✌️<span class="key">2</span></button>
-      <button class="btn-choice" onclick="play('paper')"    aria-label="보">🖐️<span class="key">3</span></button>
-    </div>
-
-    <button class="btn-reset" onclick="reset()">다시하기 [R]</button>
-    <button class="btn-reset" onclick="resetAll()" style="margin-top:6px;opacity:0.6;font-size:0.76rem;">점수 초기화</button>
+    <button class="btn-roll" onclick="roll()" id="rollBtn">굴리기 🎲</button>
+    <button class="btn-reset" onclick="resetAll()">초기화 [R]</button>
   </div>
 
   <script src="script.js"></script>
