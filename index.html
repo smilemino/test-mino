@@ -1,40 +1,127 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>주사위 게임</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>술자리 주사위</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px 14px;color:#fff}
+.card{background:rgba(255,255,255,0.13);backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,0.28);border-radius:24px;
+  padding:24px 22px;width:100%;max-width:440px;text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,0.28)}
+h1{font-size:1.25rem;font-weight:800;letter-spacing:0.05em;margin-bottom:14px}
+.count-row{display:flex;gap:8px;justify-content:center;margin-bottom:18px}
+.count-btn{flex:0 0 auto;min-width:54px;padding:8px 0;border-radius:12px;
+  border:1px solid rgba(255,255,255,0.35);background:rgba(255,255,255,0.08);
+  color:#fff;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.15s}
+.count-btn.active{background:rgba(255,255,255,0.5);border-color:#fff;color:#312760}
+.dice-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;
+  min-height:96px;align-items:center;margin-bottom:14px}
+.dice{font-size:5rem;line-height:1;text-shadow:0 6px 18px rgba(0,0,0,0.3);
+  transition:transform 0.12s ease}
+.dice.rolling{animation:shake 0.08s linear infinite}
+@keyframes shake{
+  0%{transform:rotate(-14deg) scale(1.06)}
+  50%{transform:rotate(14deg) scale(0.94)}
+  100%{transform:rotate(-14deg) scale(1.06)}}
+.sum-box{margin-bottom:20px}
+.sum-label{font-size:0.7rem;letter-spacing:0.16em;opacity:0.75;margin-bottom:2px}
+.sum-num{font-size:3.6rem;font-weight:900;line-height:1;
+  text-shadow:0 4px 14px rgba(0,0,0,0.3)}
+.btn-roll{display:block;width:100%;background:rgba(255,255,255,0.32);
+  border:1px solid rgba(255,255,255,0.5);color:#fff;font-size:1.35rem;
+  font-weight:800;padding:22px;border-radius:18px;cursor:pointer;
+  letter-spacing:0.1em;margin-bottom:14px;transition:background 0.18s,transform 0.1s}
+.btn-roll:hover:not(:disabled){background:rgba(255,255,255,0.48)}
+.btn-roll:active:not(:disabled){transform:scale(0.97)}
+.btn-roll:disabled{opacity:0.55;cursor:not-allowed}
+.history{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;min-height:30px;margin-bottom:6px}
+.hist-item{padding:5px 10px;border-radius:10px;background:rgba(255,255,255,0.12);
+  border:1px solid rgba(255,255,255,0.22);font-size:0.78rem;font-weight:600;opacity:0.9}
+.hist-label{font-size:0.65rem;letter-spacing:0.14em;opacity:0.6;margin-bottom:6px}
+</style>
 </head>
 <body>
-  <div class="card">
-    <h1>주사위 게임</h1>
-    <p class="hint">스페이스바 또는 버튼으로 굴리기 · R 초기화</p>
-
-    <div class="dice" id="dice">⚀</div>
-    <div class="result" id="result">굴려보세요</div>
-
-    <div class="scoreboard">
-      <div class="score-box">
-        <div class="score-label">굴린 횟수</div>
-        <div class="score-num" id="rolls">0</div>
-      </div>
-      <div class="divider"></div>
-      <div class="score-box">
-        <div class="score-label">합계</div>
-        <div class="score-num" id="sum">0</div>
-      </div>
-      <div class="divider"></div>
-      <div class="score-box">
-        <div class="score-label">최고 기록</div>
-        <div class="score-num" id="best">0</div>
-      </div>
-    </div>
-
-    <button class="btn-roll" onclick="roll()" id="rollBtn">굴리기 🎲</button>
-    <button class="btn-reset" onclick="resetAll()">초기화 [R]</button>
+<div class="card">
+  <h1>🎲 술자리 주사위</h1>
+  <div class="count-row" id="countRow">
+    <button class="count-btn active" data-n="2">2개</button>
+    <button class="count-btn" data-n="3">3개</button>
+    <button class="count-btn" data-n="4">4개</button>
   </div>
-
-  <script src="script.js"></script>
+  <div class="dice-row" id="diceRow"></div>
+  <div class="sum-box">
+    <div class="sum-label">합계</div>
+    <div class="sum-num" id="sumNum">—</div>
+  </div>
+  <button class="btn-roll" id="rollBtn" onclick="roll()">굴리기</button>
+  <div class="hist-label">최근 기록</div>
+  <div class="history" id="history"></div>
+</div>
+<script>
+const FACES=['⚀','⚁','⚂','⚃','⚄','⚅'];
+let count=2,rolling=false,history=[];
+const diceRow=document.getElementById('diceRow');
+const sumNum=document.getElementById('sumNum');
+const rollBtn=document.getElementById('rollBtn');
+const histEl=document.getElementById('history');
+function renderDice(values){
+  diceRow.innerHTML='';
+  values.forEach(v=>{
+    const d=document.createElement('span');
+    d.className='dice';
+    d.textContent=FACES[v-1];
+    diceRow.appendChild(d);
+  });
+}
+function renderHistory(){
+  histEl.innerHTML='';
+  history.slice(-5).reverse().forEach(h=>{
+    const it=document.createElement('span');
+    it.className='hist-item';
+    it.textContent=h.values.join('+')+'='+h.sum;
+    histEl.appendChild(it);
+  });
+}
+renderDice(Array(count).fill(1));
+document.querySelectorAll('.count-btn').forEach(b=>{
+  b.onclick=()=>{
+    if(rolling)return;
+    count=Number(b.dataset.n);
+    document.querySelectorAll('.count-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    renderDice(Array(count).fill(1));
+    sumNum.textContent='—';
+  };
+});
+function roll(){
+  if(rolling)return;
+  rolling=true;rollBtn.disabled=true;
+  const spin=setInterval(()=>{
+    const tmp=[];
+    for(let i=0;i<count;i++)tmp.push(Math.floor(Math.random()*6)+1);
+    renderDice(tmp);
+    diceRow.querySelectorAll('.dice').forEach(d=>d.classList.add('rolling'));
+  },70);
+  setTimeout(()=>{
+    clearInterval(spin);
+    const values=[];
+    for(let i=0;i<count;i++)values.push(Math.floor(Math.random()*6)+1);
+    renderDice(values);
+    const sum=values.reduce((a,b)=>a+b,0);
+    sumNum.textContent=sum;
+    history.push({values,sum});
+    renderHistory();
+    rolling=false;rollBtn.disabled=false;
+  },500);
+}
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space'){e.preventDefault();roll();}
+});
+</script>
 </body>
 </html>
