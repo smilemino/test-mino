@@ -2,125 +2,90 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
 <title>술자리 주사위</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
+html,body{height:100%;overflow:hidden;overscroll-behavior:none}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
-  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px 14px;color:#fff}
-.card{background:rgba(255,255,255,0.13);backdrop-filter:blur(12px);
-  border:1px solid rgba(255,255,255,0.28);border-radius:24px;
-  padding:24px 22px;width:100%;max-width:440px;text-align:center;
-  box-shadow:0 20px 60px rgba(0,0,0,0.28)}
-h1{font-size:1.25rem;font-weight:800;letter-spacing:0.05em;margin-bottom:14px}
-.count-row{display:flex;gap:8px;justify-content:center;margin-bottom:18px}
-.count-btn{flex:0 0 auto;min-width:54px;padding:8px 0;border-radius:12px;
-  border:1px solid rgba(255,255,255,0.35);background:rgba(255,255,255,0.08);
-  color:#fff;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.15s}
-.count-btn.active{background:rgba(255,255,255,0.5);border-color:#fff;color:#312760}
-.dice-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;
-  min-height:96px;align-items:center;margin-bottom:14px}
-.dice{font-size:5rem;line-height:1;text-shadow:0 6px 18px rgba(0,0,0,0.3);
-  transition:transform 0.12s ease}
-.dice.rolling{animation:shake 0.08s linear infinite}
-@keyframes shake{
-  0%{transform:rotate(-14deg) scale(1.06)}
-  50%{transform:rotate(14deg) scale(0.94)}
-  100%{transform:rotate(-14deg) scale(1.06)}}
-.sum-box{margin-bottom:20px}
-.sum-label{font-size:0.7rem;letter-spacing:0.16em;opacity:0.75;margin-bottom:2px}
-.sum-num{font-size:3.6rem;font-weight:900;line-height:1;
-  text-shadow:0 4px 14px rgba(0,0,0,0.3)}
-.btn-roll{display:block;width:100%;background:rgba(255,255,255,0.32);
-  border:1px solid rgba(255,255,255,0.5);color:#fff;font-size:1.35rem;
-  font-weight:800;padding:22px;border-radius:18px;cursor:pointer;
-  letter-spacing:0.1em;margin-bottom:14px;transition:background 0.18s,transform 0.1s}
-.btn-roll:hover:not(:disabled){background:rgba(255,255,255,0.48)}
-.btn-roll:active:not(:disabled){transform:scale(0.97)}
-.btn-roll:disabled{opacity:0.55;cursor:not-allowed}
-.history{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;min-height:30px;margin-bottom:6px}
-.hist-item{padding:5px 10px;border-radius:10px;background:rgba(255,255,255,0.12);
-  border:1px solid rgba(255,255,255,0.22);font-size:0.78rem;font-weight:600;opacity:0.9}
-.hist-label{font-size:0.65rem;letter-spacing:0.14em;opacity:0.6;margin-bottom:6px}
+  color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;cursor:pointer;touch-action:manipulation}
+.hint{position:fixed;top:18px;left:0;right:0;text-align:center;
+  font-size:0.95rem;letter-spacing:0.08em;opacity:0.78;font-weight:600;
+  text-shadow:0 2px 8px rgba(0,0,0,0.25);transition:opacity 0.4s}
+.hint.dim{opacity:0.28}
+.dice-row{display:flex;gap:28px;align-items:center;justify-content:center;
+  margin-bottom:34px;min-height:160px;perspective:800px}
+.dice{font-size:8.4rem;line-height:1;display:inline-block;
+  text-shadow:0 10px 28px rgba(0,0,0,0.35);
+  will-change:transform;transform-origin:50% 50%}
+.dice.rolling{animation:tumble 0.42s cubic-bezier(.6,.05,.35,1) infinite}
+.dice.rolling.d2{animation-duration:0.36s;animation-direction:reverse}
+.dice.settle{animation:settle 0.5s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes tumble{
+  0%{transform:translateY(0) rotate(0deg) scale(1)}
+  25%{transform:translateY(-46px) rotate(180deg) scale(1.08)}
+  50%{transform:translateY(0) rotate(360deg) scale(0.94)}
+  75%{transform:translateY(-22px) rotate(540deg) scale(1.04)}
+  100%{transform:translateY(0) rotate(720deg) scale(1)}}
+@keyframes settle{
+  0%{transform:translateY(-30px) rotate(40deg) scale(1.3)}
+  55%{transform:translateY(8px) rotate(-8deg) scale(0.92)}
+  80%{transform:translateY(-3px) rotate(3deg) scale(1.04)}
+  100%{transform:translateY(0) rotate(0deg) scale(1)}}
+.sum-box{text-align:center;opacity:0;transition:opacity 0.3s}
+.sum-box.show{opacity:1}
+.sum-label{font-size:0.78rem;letter-spacing:0.22em;opacity:0.75;margin-bottom:4px}
+.sum-num{font-size:4.6rem;font-weight:900;line-height:1;
+  text-shadow:0 6px 20px rgba(0,0,0,0.35)}
+@media (max-width:380px){
+  .dice{font-size:6.6rem}
+  .sum-num{font-size:3.8rem}
+  .dice-row{gap:18px;min-height:130px}
+}
 </style>
 </head>
-<body>
-<div class="card">
-  <h1>🎲 술자리 주사위</h1>
-  <div class="count-row" id="countRow">
-    <button class="count-btn active" data-n="2">2개</button>
-    <button class="count-btn" data-n="3">3개</button>
-    <button class="count-btn" data-n="4">4개</button>
-  </div>
-  <div class="dice-row" id="diceRow"></div>
-  <div class="sum-box">
-    <div class="sum-label">합계</div>
-    <div class="sum-num" id="sumNum">—</div>
-  </div>
-  <button class="btn-roll" id="rollBtn" onclick="roll()">굴리기</button>
-  <div class="hist-label">최근 기록</div>
-  <div class="history" id="history"></div>
+<body id="stage">
+<div class="hint" id="hint">화면 아무 곳이나 탭</div>
+<div class="dice-row" id="diceRow">
+  <span class="dice" id="d1">⚀</span>
+  <span class="dice" id="d2">⚀</span>
+</div>
+<div class="sum-box" id="sumBox">
+  <div class="sum-label">합계</div>
+  <div class="sum-num" id="sumNum">—</div>
 </div>
 <script>
 const FACES=['⚀','⚁','⚂','⚃','⚄','⚅'];
-let count=2,rolling=false,history=[];
-const diceRow=document.getElementById('diceRow');
-const sumNum=document.getElementById('sumNum');
-const rollBtn=document.getElementById('rollBtn');
-const histEl=document.getElementById('history');
-function renderDice(values){
-  diceRow.innerHTML='';
-  values.forEach(v=>{
-    const d=document.createElement('span');
-    d.className='dice';
-    d.textContent=FACES[v-1];
-    diceRow.appendChild(d);
-  });
-}
-function renderHistory(){
-  histEl.innerHTML='';
-  history.slice(-5).reverse().forEach(h=>{
-    const it=document.createElement('span');
-    it.className='hist-item';
-    it.textContent=h.values.join('+')+'='+h.sum;
-    histEl.appendChild(it);
-  });
-}
-renderDice(Array(count).fill(1));
-document.querySelectorAll('.count-btn').forEach(b=>{
-  b.onclick=()=>{
-    if(rolling)return;
-    count=Number(b.dataset.n);
-    document.querySelectorAll('.count-btn').forEach(x=>x.classList.remove('active'));
-    b.classList.add('active');
-    renderDice(Array(count).fill(1));
-    sumNum.textContent='—';
-  };
-});
+const d1=document.getElementById('d1'),d2=document.getElementById('d2');
+const sumNum=document.getElementById('sumNum'),sumBox=document.getElementById('sumBox');
+const hint=document.getElementById('hint');
+let rolling=false;
+function rand(){return Math.floor(Math.random()*6)+1}
+function setFace(el,v){el.textContent=FACES[v-1]}
 function roll(){
-  if(rolling)return;
-  rolling=true;rollBtn.disabled=true;
-  const spin=setInterval(()=>{
-    const tmp=[];
-    for(let i=0;i<count;i++)tmp.push(Math.floor(Math.random()*6)+1);
-    renderDice(tmp);
-    diceRow.querySelectorAll('.dice').forEach(d=>d.classList.add('rolling'));
-  },70);
+  if(rolling)return;rolling=true;
+  hint.classList.add('dim');sumBox.classList.remove('show');
+  d1.classList.remove('settle');d2.classList.remove('settle');
+  d1.classList.add('rolling');d2.classList.add('rolling','d2');
+  const spin=setInterval(()=>{setFace(d1,rand());setFace(d2,rand())},80);
+  const dur=1100+Math.random()*300;
   setTimeout(()=>{
     clearInterval(spin);
-    const values=[];
-    for(let i=0;i<count;i++)values.push(Math.floor(Math.random()*6)+1);
-    renderDice(values);
-    const sum=values.reduce((a,b)=>a+b,0);
-    sumNum.textContent=sum;
-    history.push({values,sum});
-    renderHistory();
-    rolling=false;rollBtn.disabled=false;
-  },500);
+    const v1=rand(),v2=rand();
+    setFace(d1,v1);setFace(d2,v2);
+    d1.classList.remove('rolling');d2.classList.remove('rolling','d2');
+    d1.classList.add('settle');d2.classList.add('settle');
+    sumNum.textContent=v1+v2;
+    sumBox.classList.add('show');
+    rolling=false;
+    setTimeout(()=>hint.classList.remove('dim'),400);
+  },dur);
 }
+document.getElementById('stage').addEventListener('click',roll);
 document.addEventListener('keydown',e=>{
-  if(e.code==='Space'){e.preventDefault();roll();}
+  if(e.code==='Space'||e.code==='Enter'){e.preventDefault();roll();}
 });
 </script>
 </body>
