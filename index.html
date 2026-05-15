@@ -2,317 +2,125 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
-<title>주사위 굴리기 — 3D</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>가위바위보</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  html,body{width:100%;height:100%;overflow:hidden;touch-action:manipulation;user-select:none;-webkit-user-select:none;background:#0a1620}
-  body{
-    font-family:'Helvetica Neue',Arial,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
-    color:#fff;height:100dvh;position:relative;
+  html,body{width:100%;min-height:100%;background:#0a1220;color:#fff;
+    font-family:'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',Arial,sans-serif;
+    user-select:none;-webkit-user-select:none}
+  body{display:flex;align-items:center;justify-content:center;padding:1rem;min-height:100dvh}
+  .card{
+    width:100%;max-width:420px;background:#121d33;border:1px solid #1f2c47;border-radius:20px;
+    padding:1.4rem 1.2rem 1.2rem;box-shadow:0 20px 50px rgba(0,0,0,.45);
   }
-  canvas#scene{position:fixed;inset:0;display:block;width:100%;height:100%;cursor:pointer}
-  .ui{position:fixed;left:0;right:0;pointer-events:none;padding:env(safe-area-inset-top) 1rem 0}
-  .top{top:0;display:flex;justify-content:space-between;align-items:center;padding-top:calc(env(safe-area-inset-top) + .8rem)}
-  .count{font-size:.95rem;opacity:.85;font-variant-numeric:tabular-nums}
-  .mute{
-    pointer-events:auto;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);
-    color:#fff;padding:.5rem .8rem;border-radius:999px;font-size:.85rem;cursor:pointer;backdrop-filter:blur(8px);
+  h1{font-size:1.05rem;font-weight:600;letter-spacing:.02em;opacity:.85;text-align:center;margin-bottom:.9rem}
+  .score{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:1rem}
+  .score div{background:#0e1729;border:1px solid #1f2c47;border-radius:12px;padding:.55rem .3rem;text-align:center}
+  .score .lbl{font-size:.72rem;opacity:.6;margin-bottom:.2rem}
+  .score .val{font-size:1.4rem;font-weight:700;font-variant-numeric:tabular-nums}
+  .arena{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.8rem}
+  .hand{background:#0e1729;border:1px solid #1f2c47;border-radius:16px;padding:1rem .4rem;text-align:center}
+  .hand .who{font-size:.78rem;opacity:.55;margin-bottom:.4rem}
+  .hand .emoji{font-size:clamp(3.6rem,16vw,5rem);line-height:1;display:inline-block;transform-origin:50% 70%}
+  .hand .emoji.shake{animation:shake .14s linear 0s 4}
+  @keyframes shake{
+    0%{transform:rotate(-22deg) translateY(0)}
+    50%{transform:rotate(18deg) translateY(-6px)}
+    100%{transform:rotate(-22deg) translateY(0)}
   }
-  .mute:active{transform:scale(.95)}
-  .bottom{bottom:0;text-align:center;padding-bottom:calc(env(safe-area-inset-bottom) + 1.2rem);top:auto}
-  .sum{font-size:clamp(2.4rem,9vw,3.6rem);font-weight:700;letter-spacing:-.02em;line-height:1;text-shadow:0 2px 12px rgba(255,255,255,.2)}
-  .sum small{font-size:.42em;font-weight:400;opacity:.6;display:block;margin-top:.35em;letter-spacing:.08em}
-  .hint{margin-top:.5rem;font-size:.85rem;opacity:.55;transition:opacity .3s}
-  .hint.dim{opacity:.2}
-  .loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-size:.9rem;opacity:.7}
+  .msg{text-align:center;min-height:1.6rem;font-size:1rem;font-weight:600;margin:.2rem 0 .9rem;letter-spacing:-.01em}
+  .msg.win{color:#7cf3a0}.msg.lose{color:#ff8a8a}.msg.draw{color:#ffd479}
+  .actions{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:.55rem}
+  .actions button{
+    background:#1b2848;border:1px solid #2a3a63;color:#fff;border-radius:14px;
+    padding:.85rem .3rem;font-size:1rem;font-weight:600;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:.25rem;transition:transform .08s, background .15s;
+  }
+  .actions button .e{font-size:1.7rem;line-height:1}
+  .actions button:hover{background:#23335a}
+  .actions button:active{transform:scale(.96)}
+  .actions button:disabled{opacity:.45;cursor:not-allowed}
+  .reset{
+    width:100%;background:transparent;border:1px solid #2a3a63;color:#aab4cc;
+    border-radius:12px;padding:.6rem;font-size:.85rem;cursor:pointer;
+  }
+  .reset:hover{background:#162041;color:#fff}
 </style>
 </head>
 <body>
-  <canvas id="scene"></canvas>
-  <div class="ui top">
-    <div class="count">굴린 횟수 <span id="count">0</span></div>
-    <button class="mute" id="mute" type="button" aria-label="소리 켜기/끄기">🔊 소리</button>
-  </div>
-  <div class="ui bottom">
-    <div class="sum"><span id="sum">—</span><small>합계</small></div>
-    <div class="hint" id="hint">화면 아무 곳이나 터치하세요</div>
-  </div>
-  <div class="loading" id="loading">불러오는 중…</div>
+  <main class="card" role="main">
+    <h1>가위바위보</h1>
+    <section class="score" aria-label="점수판">
+      <div><div class="lbl">민호님 승</div><div class="val" id="sU">0</div></div>
+      <div><div class="lbl">컴퓨터 승</div><div class="val" id="sC">0</div></div>
+      <div><div class="lbl">비김</div><div class="val" id="sD">0</div></div>
+    </section>
+    <section class="arena">
+      <div class="hand"><div class="who">민호님</div><div class="emoji" id="hU">✊</div></div>
+      <div class="hand"><div class="who">컴퓨터</div><div class="emoji" id="hC">✊</div></div>
+    </section>
+    <div class="msg" id="msg">가위·바위·보 중 하나를 누르세요</div>
+    <section class="actions">
+      <button data-pick="rock"    aria-label="바위"><span class="e">✊</span><span>바위</span></button>
+      <button data-pick="paper"   aria-label="보"><span class="e">✋</span><span>보</span></button>
+      <button data-pick="scissors" aria-label="가위"><span class="e">✌️</span><span>가위</span></button>
+    </section>
+    <button class="reset" id="reset">점수 초기화</button>
+  </main>
+<script>
+  const EMOJI = { rock:'✊', paper:'✋', scissors:'✌️' };
+  const NAME  = { rock:'바위', paper:'보', scissors:'가위' };
+  const BEATS = { rock:'scissors', paper:'rock', scissors:'paper' };
+  const PICKS = ['rock','paper','scissors'];
+  const score = { u:0, c:0, d:0 };
+  let busy = false;
 
-<script type="importmap">
-{"imports":{
-  "three":"https://esm.sh/three@0.160.0",
-  "cannon-es":"https://esm.sh/cannon-es@0.20.0"
-}}
-</script>
-<script type="module">
-import * as THREE from 'three';
-import * as CANNON from 'cannon-es';
+  const $ = (id) => document.getElementById(id);
+  const hU = $('hU'), hC = $('hC'), msg = $('msg');
+  const sU = $('sU'), sC = $('sC'), sD = $('sD');
+  const buttons = document.querySelectorAll('.actions button');
 
-const canvas = document.getElementById('scene');
-const sumEl = document.getElementById('sum');
-const countEl = document.getElementById('count');
-const hintEl = document.getElementById('hint');
-const muteBtn = document.getElementById('mute');
-const loadingEl = document.getElementById('loading');
-
-// --- THREE ---
-const scene = new THREE.Scene();
-scene.background = new THREE.Color('#0a1620');
-scene.fog = new THREE.Fog('#0a1620', 14, 30);
-
-const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.1, 100);
-camera.position.set(0, 10, 8);
-camera.lookAt(0, 0, 0);
-
-const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:false});
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.setSize(innerWidth, innerHeight, false);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-scene.add(new THREE.AmbientLight(0xffffff, 0.55));
-const dir = new THREE.DirectionalLight(0xffffff, 1.1);
-dir.position.set(5, 12, 6);
-dir.castShadow = true;
-dir.shadow.mapSize.set(1024, 1024);
-dir.shadow.camera.left=-8; dir.shadow.camera.right=8;
-dir.shadow.camera.top=8; dir.shadow.camera.bottom=-8;
-scene.add(dir);
-
-// 바닥 (시각)
-const floorMat = new THREE.MeshStandardMaterial({color:0x1f3a52, roughness:0.85, metalness:0.05});
-const floor = new THREE.Mesh(new THREE.PlaneGeometry(40,40), floorMat);
-floor.rotation.x = -Math.PI/2;
-floor.receiveShadow = true;
-scene.add(floor);
-
-// --- CANNON ---
-const world = new CANNON.World({gravity: new CANNON.Vec3(0,-30,0)});
-world.broadphase = new CANNON.NaiveBroadphase();
-world.allowSleep = true;
-const diceMat = new CANNON.Material('dice');
-const groundMat = new CANNON.Material('ground');
-world.addContactMaterial(new CANNON.ContactMaterial(diceMat, groundMat, {friction:0.4, restitution:0.35}));
-world.addContactMaterial(new CANNON.ContactMaterial(diceMat, diceMat, {friction:0.2, restitution:0.4}));
-
-// 바닥 물리
-const floorBody = new CANNON.Body({mass:0, shape:new CANNON.Plane(), material:groundMat});
-floorBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0), -Math.PI/2);
-world.addBody(floorBody);
-
-// 벽 (보이지 않게, 화면 밖으로 못 나가게)
-function addWall(x,z,nx,nz){
-  const b = new CANNON.Body({mass:0, shape:new CANNON.Plane(), material:groundMat});
-  b.position.set(x,0,z);
-  b.quaternion.setFromEuler(0, Math.atan2(nx,nz), 0);
-  world.addBody(b);
-  return b;
-}
-let WALL_X = 5, WALL_Z = 5;
-let wallBodies = null;
-function placeWalls(){
-  const aspect = innerWidth/innerHeight;
-  WALL_X = aspect > 1 ? 6 : 3.6;
-  WALL_Z = aspect > 1 ? 3.8 : 5.4;
-  wallBodies[0].position.set(-WALL_X,0,0);
-  wallBodies[1].position.set( WALL_X,0,0);
-  wallBodies[2].position.set(0,0,-WALL_Z);
-  wallBodies[3].position.set(0,0, WALL_Z);
-}
-{ const a = innerWidth/innerHeight; WALL_X = a>1?6:3.6; WALL_Z = a>1?3.8:5.4; }
-wallBodies = [
-  addWall(-WALL_X,0, 1,0),
-  addWall( WALL_X,0,-1,0),
-  addWall(0,-WALL_Z, 0,1),
-  addWall(0, WALL_Z, 0,-1),
-];
-
-// --- 주사위 텍스처: 면별 캔버스 ---
-function pipsCanvas(num){
-  const s = 256, c = document.createElement('canvas');
-  c.width = c.height = s;
-  const g = c.getContext('2d');
-  // 배경
-  const grd = g.createLinearGradient(0,0,s,s);
-  grd.addColorStop(0,'#fafafa'); grd.addColorStop(1,'#dcdcdc');
-  g.fillStyle = grd; g.fillRect(0,0,s,s);
-  g.strokeStyle = 'rgba(0,0,0,.08)'; g.lineWidth = 6;
-  g.strokeRect(3,3,s-6,s-6);
-  // 점 위치 (3x3 그리드 좌표)
-  const P = {
-    1:[[1,1]],
-    2:[[0,0],[2,2]],
-    3:[[0,0],[1,1],[2,2]],
-    4:[[0,0],[2,0],[0,2],[2,2]],
-    5:[[0,0],[2,0],[1,1],[0,2],[2,2]],
-    6:[[0,0],[2,0],[0,1],[2,1],[0,2],[2,2]],
-  };
-  const r = s*0.09;
-  for(const [cx,cy] of P[num]){
-    const x = s*(0.25 + cx*0.25), y = s*(0.25 + cy*0.25);
-    const rg = g.createRadialGradient(x-r*0.3,y-r*0.3,r*0.1, x,y,r);
-    rg.addColorStop(0,'#555'); rg.addColorStop(1,'#0a0a0a');
-    g.fillStyle = rg;
-    g.beginPath(); g.arc(x,y,r,0,Math.PI*2); g.fill();
+  function setBusy(b){
+    busy = b;
+    buttons.forEach(btn => btn.disabled = b);
   }
-  return new THREE.CanvasTexture(c);
-}
+  function paintScore(){ sU.textContent = score.u; sC.textContent = score.c; sD.textContent = score.d; }
+  function judge(user, comp){
+    if(user === comp) return 'draw';
+    return BEATS[user] === comp ? 'win' : 'lose';
+  }
+  function play(user){
+    if(busy) return;
+    setBusy(true);
+    msg.textContent = '컴퓨터가 고르는 중...';
+    msg.className = 'msg';
+    hU.textContent = EMOJI[user];
+    hC.textContent = '✊';
+    hC.classList.remove('shake');
+    void hC.offsetWidth;
+    hC.classList.add('shake');
+    setTimeout(() => {
+      const comp = PICKS[Math.floor(Math.random()*3)];
+      hC.classList.remove('shake');
+      hC.textContent = EMOJI[comp];
+      const r = judge(user, comp);
+      if(r === 'win'){ score.u++; msg.textContent = `민호님 승리! (${NAME[user]} vs ${NAME[comp]})`; msg.className='msg win'; }
+      else if(r === 'lose'){ score.c++; msg.textContent = `컴퓨터 승리! (${NAME[user]} vs ${NAME[comp]})`; msg.className='msg lose'; }
+      else { score.d++; msg.textContent = `비겼어요 (${NAME[user]} vs ${NAME[comp]})`; msg.className='msg draw'; }
+      paintScore();
+      setBusy(false);
+    }, 500);
+  }
 
-// material 인덱스: [+X, -X, +Y, -Y, +Z, -Z]
-// 마주보는 면의 합이 7 → +X=1/-X=6, +Y=2/-Y=5, +Z=3/-Z=4
-const faceValueByAxis = [1,6,2,5,3,4];
-const diceMaterials = faceValueByAxis.map(n => new THREE.MeshStandardMaterial({
-  map: pipsCanvas(n), roughness:0.45, metalness:0.05,
-}));
-
-const diceGeo = new THREE.BoxGeometry(1,1,1);
-// 모서리 라운드 느낌은 생략, 대신 약간의 베벨 음영을 텍스처가 흡수
-
-function makeDice(){
-  const mesh = new THREE.Mesh(diceGeo, diceMaterials);
-  mesh.castShadow = true;
-  mesh.receiveShadow = false;
-  scene.add(mesh);
-  const body = new CANNON.Body({
-    mass: 1,
-    shape: new CANNON.Box(new CANNON.Vec3(0.5,0.5,0.5)),
-    material: diceMat,
-    sleepSpeedLimit: 0.15,
-    sleepTimeLimit: 0.4,
-    linearDamping: 0.08,
-    angularDamping: 0.08,
+  buttons.forEach(btn => btn.addEventListener('click', () => play(btn.dataset.pick)));
+  $('reset').addEventListener('click', () => {
+    if(busy) return;
+    score.u = score.c = score.d = 0;
+    paintScore();
+    hU.textContent = '✊'; hC.textContent = '✊';
+    msg.textContent = '점수를 초기화했어요'; msg.className = 'msg';
   });
-  world.addBody(body);
-  return {mesh, body};
-}
-const dice = [makeDice(), makeDice()];
-
-// --- 굴림 ---
-let rolling = false, count = 0, muted = false;
-
-function resetDice(){
-  dice.forEach((d, i) => {
-    d.body.wakeUp();
-    d.body.position.set(-1.5 + i*3, 5 + Math.random()*1.5, (Math.random()-0.5)*1.2);
-    const qx=Math.random()*Math.PI*2, qy=Math.random()*Math.PI*2, qz=Math.random()*Math.PI*2;
-    d.body.quaternion.setFromEuler(qx,qy,qz);
-    d.body.velocity.set((Math.random()-0.5)*8, -2 - Math.random()*2, (Math.random()-0.5)*8);
-    d.body.angularVelocity.set(
-      (Math.random()-0.5)*18, (Math.random()-0.5)*18, (Math.random()-0.5)*18
-    );
-  });
-}
-
-const LOCAL_FACES = [
-  {v:1, n:new THREE.Vector3( 1,0,0)},
-  {v:6, n:new THREE.Vector3(-1,0,0)},
-  {v:2, n:new THREE.Vector3( 0,1,0)},
-  {v:5, n:new THREE.Vector3( 0,-1,0)},
-  {v:3, n:new THREE.Vector3( 0,0, 1)},
-  {v:4, n:new THREE.Vector3( 0,0,-1)},
-];
-function topFaceValue(mesh){
-  const up = new THREE.Vector3(0,1,0);
-  let best = -2, val = 1;
-  for(const f of LOCAL_FACES){
-    const w = f.n.clone().applyQuaternion(mesh.quaternion);
-    const d = w.dot(up);
-    if(d > best){ best = d; val = f.v; }
-  }
-  return val;
-}
-
-let audioCtx = null;
-function playRollSound(){
-  if(muted) return;
-  try{
-    audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
-    const now = audioCtx.currentTime;
-    for(let i=0;i<8;i++){
-      const t = now + i*0.09 + Math.random()*0.05;
-      const o = audioCtx.createOscillator();
-      const g = audioCtx.createGain();
-      const bp = audioCtx.createBiquadFilter();
-      bp.type='bandpass'; bp.frequency.value = 600 + Math.random()*900; bp.Q.value = 1.2;
-      o.type = 'square'; o.frequency.value = 80 + Math.random()*60;
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.16, t+0.005);
-      g.gain.exponentialRampToValueAtTime(0.0001, t+0.16);
-      o.connect(bp).connect(g).connect(audioCtx.destination);
-      o.start(t); o.stop(t+0.18);
-    }
-  }catch(e){}
-}
-
-function roll(){
-  if(rolling) return;
-  rolling = true;
-  hintEl.classList.add('dim');
-  sumEl.textContent = '…';
-  resetDice();
-  playRollSound();
-  if(navigator.vibrate) navigator.vibrate([18,28,18,28,38]);
-}
-
-function checkSettled(){
-  if(!rolling) return;
-  const allSleeping = dice.every(d => d.body.sleepState === CANNON.Body.SLEEPING);
-  if(!allSleeping) return;
-  const v1 = topFaceValue(dice[0].mesh);
-  const v2 = topFaceValue(dice[1].mesh);
-  sumEl.textContent = (v1 + v2);
-  count++; countEl.textContent = count;
-  rolling = false;
-}
-
-// --- 루프 ---
-const clock = new THREE.Clock();
-function loop(){
-  const dt = Math.max(Math.min(clock.getDelta(), 1/30), 1/120);
-  world.step(1/60, dt, 3);
-  for(const d of dice){
-    d.mesh.position.copy(d.body.position);
-    d.mesh.quaternion.copy(d.body.quaternion);
-  }
-  checkSettled();
-  renderer.render(scene, camera);
-  requestAnimationFrame(loop);
-}
-
-// --- 초기 표시: 두 주사위를 정적으로 바닥에 놓기 ---
-dice[0].body.position.set(-1.5, 0.5, 0);
-dice[1].body.position.set( 1.5, 0.5, 0);
-dice[0].body.sleep();
-dice[1].body.sleep();
-
-loadingEl.remove();
-loop();
-
-// --- 입력 ---
-function isUI(t){ return t && t.closest && t.closest('button, .mute'); }
-document.addEventListener('pointerdown', (e) => {
-  if(isUI(e.target)) return;
-  roll();
-});
-document.addEventListener('keydown', (e) => {
-  if(e.code === 'Space' || e.code === 'Enter'){ e.preventDefault(); roll(); }
-});
-muteBtn.addEventListener('click', () => {
-  muted = !muted;
-  muteBtn.textContent = muted ? '🔇 소리' : '🔊 소리';
-});
-
-// --- 반응형 ---
-function onResize(){
-  camera.aspect = innerWidth/innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight, false);
-  placeWalls();
-}
-addEventListener('resize', onResize);
-addEventListener('orientationchange', () => setTimeout(onResize, 200));
 </script>
 </body>
 </html>
