@@ -3,124 +3,129 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>가위바위보</title>
+<title>메모장</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   html,body{width:100%;min-height:100%;background:#0a1220;color:#fff;
-    font-family:'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',Arial,sans-serif;
-    user-select:none;-webkit-user-select:none}
-  body{display:flex;align-items:center;justify-content:center;padding:1rem;min-height:100dvh}
-  .card{
-    width:100%;max-width:420px;background:#121d33;border:1px solid #1f2c47;border-radius:20px;
-    padding:1.4rem 1.2rem 1.2rem;box-shadow:0 20px 50px rgba(0,0,0,.45);
+    font-family:'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',Arial,sans-serif}
+  body{display:flex;justify-content:center;padding:1rem;min-height:100dvh}
+  .wrap{width:100%;max-width:520px;display:flex;flex-direction:column;gap:.9rem}
+  h1{font-size:1.05rem;font-weight:600;letter-spacing:.02em;opacity:.85;text-align:center;padding:.4rem 0}
+  .card{background:#121d33;border:1px solid #1f2c47;border-radius:18px;padding:1rem;box-shadow:0 16px 40px rgba(0,0,0,.4)}
+  textarea{
+    width:100%;min-height:110px;resize:vertical;background:#0e1729;color:#fff;
+    border:1px solid #1f2c47;border-radius:12px;padding:.75rem .85rem;
+    font:inherit;font-size:.95rem;line-height:1.45;outline:none;
   }
-  h1{font-size:1.05rem;font-weight:600;letter-spacing:.02em;opacity:.85;text-align:center;margin-bottom:.9rem}
-  .score{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:1rem}
-  .score div{background:#0e1729;border:1px solid #1f2c47;border-radius:12px;padding:.55rem .3rem;text-align:center}
-  .score .lbl{font-size:.72rem;opacity:.6;margin-bottom:.2rem}
-  .score .val{font-size:1.4rem;font-weight:700;font-variant-numeric:tabular-nums}
-  .arena{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.8rem}
-  .hand{background:#0e1729;border:1px solid #1f2c47;border-radius:16px;padding:1rem .4rem;text-align:center}
-  .hand .who{font-size:.78rem;opacity:.55;margin-bottom:.4rem}
-  .hand .emoji{font-size:clamp(3.6rem,16vw,5rem);line-height:1;display:inline-block;transform-origin:50% 70%}
-  .hand .emoji.shake{animation:shake .14s linear 0s 4}
-  @keyframes shake{
-    0%{transform:rotate(-22deg) translateY(0)}
-    50%{transform:rotate(18deg) translateY(-6px)}
-    100%{transform:rotate(-22deg) translateY(0)}
+  textarea:focus{border-color:#3a5396}
+  .row{display:flex;gap:.5rem;margin-top:.65rem;align-items:center}
+  .count{font-size:.78rem;opacity:.55;margin-right:auto}
+  button{
+    background:#1b2848;border:1px solid #2a3a63;color:#fff;border-radius:12px;
+    padding:.6rem 1rem;font:inherit;font-size:.92rem;font-weight:600;cursor:pointer;
+    transition:transform .08s, background .15s;
   }
-  .msg{text-align:center;min-height:1.6rem;font-size:1rem;font-weight:600;margin:.2rem 0 .9rem;letter-spacing:-.01em}
-  .msg.win{color:#7cf3a0}.msg.lose{color:#ff8a8a}.msg.draw{color:#ffd479}
-  .actions{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:.55rem}
-  .actions button{
-    background:#1b2848;border:1px solid #2a3a63;color:#fff;border-radius:14px;
-    padding:.85rem .3rem;font-size:1rem;font-weight:600;cursor:pointer;
-    display:flex;flex-direction:column;align-items:center;gap:.25rem;transition:transform .08s, background .15s;
+  button:hover{background:#23335a}
+  button:active{transform:scale(.97)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .add{background:#2a4a8a;border-color:#3a5fae}
+  .add:hover{background:#335aa6}
+  .list{display:flex;flex-direction:column;gap:.55rem}
+  .empty{text-align:center;opacity:.5;font-size:.9rem;padding:1.4rem .5rem}
+  .item{
+    background:#121d33;border:1px solid #1f2c47;border-radius:14px;
+    padding:.8rem .9rem;display:flex;gap:.6rem;align-items:flex-start;
   }
-  .actions button .e{font-size:1.7rem;line-height:1}
-  .actions button:hover{background:#23335a}
-  .actions button:active{transform:scale(.96)}
-  .actions button:disabled{opacity:.45;cursor:not-allowed}
-  .reset{
-    width:100%;background:transparent;border:1px solid #2a3a63;color:#aab4cc;
-    border-radius:12px;padding:.6rem;font-size:.85rem;cursor:pointer;
+  .item .body{flex:1;min-width:0}
+  .item .text{font-size:.95rem;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+  .item .time{font-size:.72rem;opacity:.45;margin-top:.35rem}
+  .del{
+    background:transparent;border:1px solid #3a2a2a;color:#ff9a9a;
+    padding:.4rem .65rem;font-size:.8rem;border-radius:10px;
   }
-  .reset:hover{background:#162041;color:#fff}
+  .del:hover{background:#3a1f1f;color:#fff;border-color:#5a2a2a}
 </style>
 </head>
 <body>
-  <main class="card" role="main">
-    <h1>가위바위보</h1>
-    <section class="score" aria-label="점수판">
-      <div><div class="lbl">민호님 승</div><div class="val" id="sU">0</div></div>
-      <div><div class="lbl">컴퓨터 승</div><div class="val" id="sC">0</div></div>
-      <div><div class="lbl">비김</div><div class="val" id="sD">0</div></div>
+  <main class="wrap" role="main">
+    <h1>메모장</h1>
+    <section class="card">
+      <textarea id="input" placeholder="메모를 입력하세요..." maxlength="2000" aria-label="새 메모"></textarea>
+      <div class="row">
+        <span class="count" id="count">0 / 2000</span>
+        <button class="add" id="add" type="button">추가</button>
+      </div>
     </section>
-    <section class="arena">
-      <div class="hand"><div class="who">민호님</div><div class="emoji" id="hU">✊</div></div>
-      <div class="hand"><div class="who">컴퓨터</div><div class="emoji" id="hC">✊</div></div>
-    </section>
-    <div class="msg" id="msg">가위·바위·보 중 하나를 누르세요</div>
-    <section class="actions">
-      <button data-pick="rock"    aria-label="바위"><span class="e">✊</span><span>바위</span></button>
-      <button data-pick="paper"   aria-label="보"><span class="e">✋</span><span>보</span></button>
-      <button data-pick="scissors" aria-label="가위"><span class="e">✌️</span><span>가위</span></button>
-    </section>
-    <button class="reset" id="reset">점수 초기화</button>
+    <section class="list" id="list" aria-live="polite"></section>
   </main>
 <script>
-  const EMOJI = { rock:'✊', paper:'✋', scissors:'✌️' };
-  const NAME  = { rock:'바위', paper:'보', scissors:'가위' };
-  const BEATS = { rock:'scissors', paper:'rock', scissors:'paper' };
-  const PICKS = ['rock','paper','scissors'];
-  const score = { u:0, c:0, d:0 };
-  let busy = false;
-
+  const KEY = 'test-mino:notes:v1';
   const $ = (id) => document.getElementById(id);
-  const hU = $('hU'), hC = $('hC'), msg = $('msg');
-  const sU = $('sU'), sC = $('sC'), sD = $('sD');
-  const buttons = document.querySelectorAll('.actions button');
+  const input = $('input'), list = $('list'), addBtn = $('add'), count = $('count');
 
-  function setBusy(b){
-    busy = b;
-    buttons.forEach(btn => btn.disabled = b);
-  }
-  function paintScore(){ sU.textContent = score.u; sC.textContent = score.c; sD.textContent = score.d; }
-  function judge(user, comp){
-    if(user === comp) return 'draw';
-    return BEATS[user] === comp ? 'win' : 'lose';
-  }
-  function play(user){
-    if(busy) return;
-    setBusy(true);
-    msg.textContent = '컴퓨터가 고르는 중...';
-    msg.className = 'msg';
-    hU.textContent = EMOJI[user];
-    hC.textContent = '✊';
-    hC.classList.remove('shake');
-    void hC.offsetWidth;
-    hC.classList.add('shake');
-    setTimeout(() => {
-      const comp = PICKS[Math.floor(Math.random()*3)];
-      hC.classList.remove('shake');
-      hC.textContent = EMOJI[comp];
-      const r = judge(user, comp);
-      if(r === 'win'){ score.u++; msg.textContent = `민호님 승리! (${NAME[user]} vs ${NAME[comp]})`; msg.className='msg win'; }
-      else if(r === 'lose'){ score.c++; msg.textContent = `컴퓨터 승리! (${NAME[user]} vs ${NAME[comp]})`; msg.className='msg lose'; }
-      else { score.d++; msg.textContent = `비겼어요 (${NAME[user]} vs ${NAME[comp]})`; msg.className='msg draw'; }
-      paintScore();
-      setBusy(false);
-    }, 500);
+  const load = () => {
+    try { return JSON.parse(localStorage.getItem(KEY)) || []; }
+    catch { return []; }
+  };
+  const save = (notes) => localStorage.setItem(KEY, JSON.stringify(notes));
+
+  const fmt = (ts) => {
+    const d = new Date(ts);
+    const p = (n) => String(n).padStart(2,'0');
+    return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  };
+
+  function render(){
+    const notes = load();
+    list.innerHTML = '';
+    if(notes.length === 0){
+      const e = document.createElement('div');
+      e.className = 'empty'; e.textContent = '아직 메모가 없어요. 위에서 첫 메모를 작성하세요.';
+      list.appendChild(e); return;
+    }
+    notes.slice().sort((a,b)=>b.ts-a.ts).forEach(n => {
+      const item = document.createElement('div'); item.className = 'item';
+      const body = document.createElement('div'); body.className = 'body';
+      const t = document.createElement('div'); t.className = 'text'; t.textContent = n.text;
+      const tm = document.createElement('div'); tm.className = 'time'; tm.textContent = fmt(n.ts);
+      body.appendChild(t); body.appendChild(tm);
+      const del = document.createElement('button'); del.className = 'del'; del.type='button'; del.textContent = '삭제';
+      del.addEventListener('click', () => {
+        if(!confirm('이 메모를 삭제할까요?')) return;
+        save(load().filter(x => x.id !== n.id));
+        render();
+      });
+      item.appendChild(body); item.appendChild(del);
+      list.appendChild(item);
+    });
   }
 
-  buttons.forEach(btn => btn.addEventListener('click', () => play(btn.dataset.pick)));
-  $('reset').addEventListener('click', () => {
-    if(busy) return;
-    score.u = score.c = score.d = 0;
-    paintScore();
-    hU.textContent = '✊'; hC.textContent = '✊';
-    msg.textContent = '점수를 초기화했어요'; msg.className = 'msg';
+  function updateCount(){
+    const len = input.value.length;
+    count.textContent = `${len} / 2000`;
+    addBtn.disabled = input.value.trim().length === 0;
+  }
+
+  function add(){
+    const text = input.value.trim();
+    if(!text) return;
+    const notes = load();
+    notes.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2,8), text, ts: Date.now() });
+    save(notes);
+    input.value = '';
+    updateCount();
+    render();
+    input.focus();
+  }
+
+  addBtn.addEventListener('click', add);
+  input.addEventListener('input', updateCount);
+  input.addEventListener('keydown', (e) => {
+    if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){ e.preventDefault(); add(); }
   });
+
+  updateCount();
+  render();
 </script>
 </body>
 </html>
