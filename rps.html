@@ -235,6 +235,8 @@
 
   <script>
     const EMOJI = { rock: '✊', scissors: '✌️', paper: '✋' };
+    const LABEL = { rock: '바위', scissors: '가위', paper: '보' };
+    const BEATS = { rock: 'scissors', scissors: 'paper', paper: 'rock' };
     const CHOICES = ['rock', 'scissors', 'paper'];
     let myScore = 0, cpuScore = 0;
 
@@ -257,15 +259,11 @@
       let result, cls;
       if (myPick === cpuPick) {
         result = '무승부! 🤝'; cls = 'draw';
-      } else if (
-        (myPick === 'rock'     && cpuPick === 'scissors') ||
-        (myPick === 'scissors' && cpuPick === 'paper')    ||
-        (myPick === 'paper'    && cpuPick === 'rock')
-      ) {
-        result = '내가 이겼다! 🎉'; cls = 'win';
+      } else if (BEATS[myPick] === cpuPick) {
+        result = `${LABEL[myPick]}으로 승리! 🎉`; cls = 'win';
         myScore++;
       } else {
-        result = '컴퓨터가 이겼다 😅'; cls = 'lose';
+        result = `${LABEL[cpuPick]}에 패배… 😅`; cls = 'lose';
         cpuScore++;
       }
 
