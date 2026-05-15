@@ -2,91 +2,207 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<title>술자리 주사위</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>주사위 굴리기</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
-html,body{height:100%;overflow:hidden;overscroll-behavior:none}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-  background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
-  color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:24px;cursor:pointer;touch-action:manipulation}
-.hint{position:fixed;top:18px;left:0;right:0;text-align:center;
-  font-size:0.95rem;letter-spacing:0.08em;opacity:0.78;font-weight:600;
-  text-shadow:0 2px 8px rgba(0,0,0,0.25);transition:opacity 0.4s}
-.hint.dim{opacity:0.28}
-.dice-row{display:flex;gap:28px;align-items:center;justify-content:center;
-  margin-bottom:34px;min-height:160px;perspective:800px}
-.dice{font-size:8.4rem;line-height:1;display:inline-block;
-  text-shadow:0 10px 28px rgba(0,0,0,0.35);
-  will-change:transform;transform-origin:50% 50%}
-.dice.rolling{animation:tumble 0.42s cubic-bezier(.6,.05,.35,1) infinite}
-.dice.rolling.d2{animation-duration:0.36s;animation-direction:reverse}
-.dice.settle{animation:settle 0.5s cubic-bezier(.34,1.56,.64,1) both}
-@keyframes tumble{
-  0%{transform:translateY(0) rotate(0deg) scale(1)}
-  25%{transform:translateY(-46px) rotate(180deg) scale(1.08)}
-  50%{transform:translateY(0) rotate(360deg) scale(0.94)}
-  75%{transform:translateY(-22px) rotate(540deg) scale(1.04)}
-  100%{transform:translateY(0) rotate(720deg) scale(1)}}
-@keyframes settle{
-  0%{transform:translateY(-30px) rotate(40deg) scale(1.3)}
-  55%{transform:translateY(8px) rotate(-8deg) scale(0.92)}
-  80%{transform:translateY(-3px) rotate(3deg) scale(1.04)}
-  100%{transform:translateY(0) rotate(0deg) scale(1)}}
-.sum-box{text-align:center;opacity:0;transition:opacity 0.3s}
-.sum-box.show{opacity:1}
-.sum-label{font-size:0.78rem;letter-spacing:0.22em;opacity:0.75;margin-bottom:4px}
-.sum-num{font-size:4.6rem;font-weight:900;line-height:1;
-  text-shadow:0 6px 20px rgba(0,0,0,0.35)}
-@media (max-width:380px){
-  .dice{font-size:6.6rem}
-  .sum-num{font-size:3.8rem}
-  .dice-row{gap:18px;min-height:130px}
-}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{width:100%;height:100%;overflow:hidden;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+  body{
+    font-family:'Helvetica Neue',Arial,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+    background:radial-gradient(ellipse at top,#1f3a52 0%,#0a1620 70%,#000 100%);
+    color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:space-between;
+    height:100dvh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    cursor:pointer;
+  }
+  header{width:100%;display:flex;justify-content:space-between;align-items:center;padding:1rem 1.2rem;font-size:.95rem;opacity:.85;pointer-events:none}
+  header .count{font-variant-numeric:tabular-nums}
+  header button{
+    pointer-events:auto;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);
+    color:#fff;padding:.5rem .8rem;border-radius:999px;font-size:.85rem;cursor:pointer;backdrop-filter:blur(8px);
+  }
+  header button:active{transform:scale(.95)}
+  .stage{
+    flex:1;width:100%;display:flex;align-items:center;justify-content:center;gap:clamp(1.2rem,6vw,3rem);
+    perspective:1200px;perspective-origin:50% 30%;
+  }
+  .dice{
+    --s:clamp(70px,18vw,130px);
+    width:var(--s);height:var(--s);position:relative;transform-style:preserve-3d;
+    transition:transform 1.6s cubic-bezier(.2,.85,.25,1);
+    will-change:transform;
+  }
+  .dice.rolling{animation:tumble .9s linear infinite}
+  @keyframes tumble{
+    0%{transform:rotateX(0) rotateY(0) rotateZ(0) translateY(0)}
+    25%{transform:rotateX(360deg) rotateY(180deg) rotateZ(90deg) translateY(-22px)}
+    50%{transform:rotateX(720deg) rotateY(540deg) rotateZ(180deg) translateY(0)}
+    75%{transform:rotateX(1080deg) rotateY(900deg) rotateZ(270deg) translateY(-14px)}
+    100%{transform:rotateX(1440deg) rotateY(1260deg) rotateZ(360deg) translateY(0)}
+  }
+  .face{
+    position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);
+    padding:14%;gap:6%;
+    background:linear-gradient(145deg,#fafafa,#dcdcdc);
+    border-radius:14%;
+    box-shadow:inset 0 0 0 2px rgba(0,0,0,.08),inset 0 -8px 16px rgba(0,0,0,.12),inset 0 8px 16px rgba(255,255,255,.6);
+    backface-visibility:hidden;
+  }
+  .pip{background:radial-gradient(circle at 35% 30%,#444 0%,#0a0a0a 70%);border-radius:50%;align-self:center;justify-self:center;width:78%;height:78%;box-shadow:inset 0 -2px 3px rgba(255,255,255,.25),0 1px 1px rgba(0,0,0,.4)}
+  .pip.hidden{visibility:hidden}
+  /* 6면 배치: 한 면 크기 var(--s), 절반만큼 평행이동 */
+  .f1{transform:translateZ(calc(var(--s) / 2))}
+  .f6{transform:rotateY(180deg) translateZ(calc(var(--s) / 2))}
+  .f2{transform:rotateY(90deg) translateZ(calc(var(--s) / 2))}
+  .f5{transform:rotateY(-90deg) translateZ(calc(var(--s) / 2))}
+  .f3{transform:rotateX(90deg) translateZ(calc(var(--s) / 2))}
+  .f4{transform:rotateX(-90deg) translateZ(calc(var(--s) / 2))}
+  .footer{
+    width:100%;text-align:center;padding:1rem 1.2rem 1.5rem;pointer-events:none;
+  }
+  .sum{font-size:clamp(2.4rem,9vw,3.6rem);font-weight:700;letter-spacing:-.02em;line-height:1;text-shadow:0 2px 12px rgba(255,255,255,.15)}
+  .sum small{font-size:.42em;font-weight:400;opacity:.6;display:block;margin-top:.35em;letter-spacing:.08em}
+  .hint{margin-top:.6rem;font-size:.85rem;opacity:.55}
+  .hint.dim{opacity:.25}
 </style>
 </head>
-<body id="stage">
-<div class="hint" id="hint">화면 아무 곳이나 탭</div>
-<div class="dice-row" id="diceRow">
-  <span class="dice" id="d1">⚀</span>
-  <span class="dice" id="d2">⚀</span>
-</div>
-<div class="sum-box" id="sumBox">
-  <div class="sum-label">합계</div>
-  <div class="sum-num" id="sumNum">—</div>
-</div>
+<body>
+  <header>
+    <div class="count">굴린 횟수 <span id="count">0</span></div>
+    <button id="mute" type="button" aria-label="소리 켜기/끄기">🔊 소리</button>
+  </header>
+
+  <div class="stage" aria-hidden="false">
+    <div class="dice" id="d1"></div>
+    <div class="dice" id="d2"></div>
+  </div>
+
+  <div class="footer">
+    <div class="sum"><span id="sum">7</span><small>합계</small></div>
+    <div class="hint" id="hint">화면 아무 곳이나 터치하세요</div>
+  </div>
+
 <script>
-const FACES=['⚀','⚁','⚂','⚃','⚄','⚅'];
-const d1=document.getElementById('d1'),d2=document.getElementById('d2');
-const sumNum=document.getElementById('sumNum'),sumBox=document.getElementById('sumBox');
-const hint=document.getElementById('hint');
-let rolling=false;
-function rand(){return Math.floor(Math.random()*6)+1}
-function setFace(el,v){el.textContent=FACES[v-1]}
-function roll(){
-  if(rolling)return;rolling=true;
-  hint.classList.add('dim');sumBox.classList.remove('show');
-  d1.classList.remove('settle');d2.classList.remove('settle');
-  d1.classList.add('rolling');d2.classList.add('rolling','d2');
-  const spin=setInterval(()=>{setFace(d1,rand());setFace(d2,rand())},80);
-  const dur=1100+Math.random()*300;
-  setTimeout(()=>{
-    clearInterval(spin);
-    const v1=rand(),v2=rand();
-    setFace(d1,v1);setFace(d2,v2);
-    d1.classList.remove('rolling');d2.classList.remove('rolling','d2');
-    d1.classList.add('settle');d2.classList.add('settle');
-    sumNum.textContent=v1+v2;
-    sumBox.classList.add('show');
-    rolling=false;
-    setTimeout(()=>hint.classList.remove('dim'),400);
-  },dur);
-}
-document.getElementById('stage').addEventListener('click',roll);
-document.addEventListener('keydown',e=>{
-  if(e.code==='Space'||e.code==='Enter'){e.preventDefault();roll();}
-});
+(() => {
+  const PIPS = {
+    1:[4],
+    2:[0,8],
+    3:[0,4,8],
+    4:[0,2,6,8],
+    5:[0,2,4,6,8],
+    6:[0,2,3,5,6,8],
+  };
+  function buildDice(el){
+    el.innerHTML = '';
+    for(let n=1;n<=6;n++){
+      const f = document.createElement('div');
+      f.className = `face f${n}`;
+      for(let i=0;i<9;i++){
+        const p = document.createElement('span');
+        p.className = 'pip' + (PIPS[n].includes(i) ? '' : ' hidden');
+        f.appendChild(p);
+      }
+      el.appendChild(f);
+    }
+  }
+  // 각 면(1~6)이 카메라를 향하도록 하는 종착 회전값 (도 단위)
+  const FACE_ROT = {
+    1:[0,0],      // X,Y
+    2:[0,-90],
+    3:[-90,0],
+    4:[90,0],
+    5:[0,90],
+    6:[0,180],
+  };
+  const d1 = document.getElementById('d1');
+  const d2 = document.getElementById('d2');
+  const sumEl = document.getElementById('sum');
+  const countEl = document.getElementById('count');
+  const hintEl = document.getElementById('hint');
+  const muteBtn = document.getElementById('mute');
+  buildDice(d1); buildDice(d2);
+
+  let rolling = false, count = 0, muted = false;
+  let audioCtx = null;
+  function playRollSound(){
+    if(muted) return;
+    try{
+      audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
+      const now = audioCtx.currentTime;
+      for(let i=0;i<6;i++){
+        const t = now + i*0.12 + Math.random()*0.04;
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        const bp = audioCtx.createBiquadFilter();
+        bp.type='bandpass'; bp.frequency.value = 600 + Math.random()*900; bp.Q.value = 1.2;
+        o.type = 'square'; o.frequency.value = 80 + Math.random()*60;
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.18, t+0.005);
+        g.gain.exponentialRampToValueAtTime(0.0001, t+0.16);
+        o.connect(bp).connect(g).connect(audioCtx.destination);
+        o.start(t); o.stop(t+0.18);
+      }
+    }catch(e){}
+  }
+  function settleRotation(face){
+    const [rx,ry] = FACE_ROT[face];
+    // 여러 바퀴 회전 후 정확한 면을 맞춰 자연스럽게 멈춤
+    const spinX = (3 + Math.floor(Math.random()*3)) * 360;
+    const spinY = (3 + Math.floor(Math.random()*3)) * 360;
+    const tiltZ = (Math.random()*30 - 15);
+    return `rotateX(${spinX + rx}deg) rotateY(${spinY + ry}deg) rotateZ(${tiltZ}deg)`;
+  }
+  function roll(){
+    if(rolling) return;
+    rolling = true;
+    hintEl.classList.add('dim');
+    const v1 = 1 + Math.floor(Math.random()*6);
+    const v2 = 1 + Math.floor(Math.random()*6);
+    // 1단계: 굴리는 중 (tumble 애니메이션)
+    d1.style.transition = 'none'; d2.style.transition = 'none';
+    d1.style.transform = ''; d2.style.transform = '';
+    d1.classList.add('rolling'); d2.classList.add('rolling');
+    playRollSound();
+    if(navigator.vibrate) navigator.vibrate([20,30,20,30,40]);
+    sumEl.textContent = '…';
+    // 2단계: 일정 시간 후 종착 회전으로 부드럽게 정렬
+    setTimeout(() => {
+      // 애니메이션 현재 프레임 위치 캡처 → 스냅 방지
+      const t1 = getComputedStyle(d1).transform;
+      const t2 = getComputedStyle(d2).transform;
+      d1.classList.remove('rolling'); d2.classList.remove('rolling');
+      d1.style.transform = t1; d2.style.transform = t2;
+      d1.style.transition = 'transform 1.4s cubic-bezier(.18,.85,.25,1)';
+      d2.style.transition = 'transform 1.4s cubic-bezier(.18,.85,.25,1)';
+      // reflow
+      void d1.offsetWidth; void d2.offsetWidth;
+      d1.style.transform = settleRotation(v1);
+      d2.style.transform = settleRotation(v2);
+      setTimeout(() => {
+        sumEl.textContent = v1 + v2;
+        count++; countEl.textContent = count;
+        rolling = false;
+      }, 1400);
+    }, 900);
+  }
+  // 화면 어디든 클릭/터치 → 굴림 (버튼은 제외)
+  function isInteractive(t){
+    return t.closest && t.closest('button');
+  }
+  document.addEventListener('click', (e) => {
+    if(isInteractive(e.target)) return;
+    roll();
+  });
+  document.addEventListener('keydown', (e) => {
+    if(e.code === 'Space' || e.code === 'Enter'){ e.preventDefault(); roll(); }
+  });
+  muteBtn.addEventListener('click', () => {
+    muted = !muted;
+    muteBtn.textContent = muted ? '🔇 소리' : '🔊 소리';
+  });
+  // 초기 표시
+  d1.style.transform = settleRotation(3);
+  d2.style.transform = settleRotation(4);
+})();
 </script>
 </body>
 </html>
