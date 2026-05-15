@@ -116,14 +116,12 @@ function placeWalls(){
   const aspect = innerWidth/innerHeight;
   WALL_X = aspect > 1 ? 6 : 3.6;
   WALL_Z = aspect > 1 ? 3.8 : 5.4;
-  if(wallBodies){
-    wallBodies[0].position.set(-WALL_X,0,0);
-    wallBodies[1].position.set( WALL_X,0,0);
-    wallBodies[2].position.set(0,0,-WALL_Z);
-    wallBodies[3].position.set(0,0, WALL_Z);
-  }
+  wallBodies[0].position.set(-WALL_X,0,0);
+  wallBodies[1].position.set( WALL_X,0,0);
+  wallBodies[2].position.set(0,0,-WALL_Z);
+  wallBodies[3].position.set(0,0, WALL_Z);
 }
-placeWalls();
+{ const a = innerWidth/innerHeight; WALL_X = a>1?6:3.6; WALL_Z = a>1?3.8:5.4; }
 wallBodies = [
   addWall(-WALL_X,0, 1,0),
   addWall( WALL_X,0,-1,0),
@@ -272,7 +270,7 @@ function checkSettled(){
 // --- 루프 ---
 const clock = new THREE.Clock();
 function loop(){
-  const dt = Math.min(clock.getDelta(), 1/30);
+  const dt = Math.max(Math.min(clock.getDelta(), 1/30), 1/120);
   world.step(1/60, dt, 3);
   for(const d of dice){
     d.mesh.position.copy(d.body.position);
