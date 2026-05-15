@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>계산기</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
+    background: radial-gradient(circle at 30% 20%, #1f2937 0%, #0b0f17 70%);
+    color: #f3f4f6;
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px;
+  }
+  .calc {
+    width: min(360px, 100%);
+    background: #111827;
+    border: 1px solid #1f2937;
+    border-radius: 20px;
+    padding: 18px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .display {
+    background: #0b0f17;
+    border-radius: 14px;
+    padding: 18px 16px;
+    text-align: right;
+    margin-bottom: 14px;
+    min-height: 86px;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .expr { color: #6b7280; font-size: 14px; min-height: 18px; word-break: break-all; }
+  .result { color: #f9fafb; font-size: 36px; font-weight: 600; word-break: break-all; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  button {
+    border: 0; border-radius: 12px;
+    padding: 16px 0;
+    font-size: 20px; font-weight: 500;
+    color: #f3f4f6;
+    background: #1f2937;
+    cursor: pointer;
+    transition: transform 0.08s ease, background 0.15s ease, box-shadow 0.15s ease;
+    user-select: none;
+  }
+  button:hover { background: #283447; }
+  button:active { transform: scale(0.94); background: #374151; box-shadow: inset 0 0 0 2px #4b5563; }
+  .op { background: #2563eb; }
+  .op:hover { background: #1d4ed8; }
+  .op:active { background: #1e40af; }
+  .clear { background: #b91c1c; }
+  .clear:hover { background: #991b1b; }
+  .clear:active { background: #7f1d1d; }
+  .eq { background: #16a34a; grid-column: span 2; }
+  .eq:hover { background: #15803d; }
+  .eq:active { background: #166534; }
+</style>
+</head>
+<body>
+  <div class="calc">
+    <div class="display">
+      <div class="expr" id="expr">&nbsp;</div>
+      <div class="result" id="result">0</div>
+    </div>
+    <div class="grid">
+      <button class="clear" data-act="clear">C</button>
+      <button data-act="back">←</button>
+      <button data-act="pct">%</button>
+      <button class="op" data-op="/">÷</button>
+      <button data-num="7">7</button>
+      <button data-num="8">8</button>
+      <button data-num="9">9</button>
+      <button class="op" data-op="*">×</button>
+      <button data-num="4">4</button>
+      <button data-num="5">5</button>
+      <button data-num="6">6</button>
+      <button class="op" data-op="-">−</button>
+      <button data-num="1">1</button>
+      <button data-num="2">2</button>
+      <button data-num="3">3</button>
+      <button class="op" data-op="+">+</button>
+      <button data-num="0">0</button>
+      <button data-act="dot">.</button>
+      <button class="eq" data-act="eq">=</button>
+    </div>
+  </div>
+<script>
+(() => {
+  const exprEl = document.getElementById('expr');
+  const resEl = document.getElementById('result');
+  let cur = '0', prev = null, op = null, justEq = false;
+  const fmt = v => {
+    if (!isFinite(v)) return '오류';
+    const s = Number(v).toPrecision(12);
+    return parseFloat(s).toString();
+  };
+  const calc = (a, b, o) => {
+    a = Number(a); b = Number(b);
+    if (o === '+') return a + b;
+    if (o === '-') return a - b;
+    if (o === '*') return a * b;
+    if (o === '/') return b === 0 ? NaN : a / b;
+    return b;
+  };
+  const sym = o => ({ '+': '+', '-': '−', '*': '×', '/': '÷' }[o] || '');
+  const render = () => {
+    resEl.textContent = cur;
+    exprEl.innerHTML = prev !== null ? `${fmt(prev)} ${sym(op)}` : '&nbsp;';
+  };
+  const inputNum = n => {
+    if (justEq) { cur = '0'; prev = null; op = null; justEq = false; }
+    cur = cur === '0' ? n : cur + n;
+  };
+  const inputDot = () => {
+    if (justEq) { cur = '0'; prev = null; op = null; justEq = false; }
+    if (!cur.includes('.')) cur += '.';
+  };
+  const setOp = newOp => {
+    if (prev !== null && op !== null && !justEq) {
+      prev = fmt(calc(prev, cur, op));
+      cur = prev;
+    } else {
+      prev = cur;
+    }
+    op = newOp; cur = '0'; justEq = false;
+  };
+  const equals = () => {
+    if (prev === null || op === null) return;
+    cur = fmt(calc(prev, cur, op));
+    prev = null; op = null; justEq = true;
+  };
+  const back = () => {
+    if (justEq) return;
+    cur = cur.length > 1 ? cur.slice(0, -1) : '0';
+  };
+  const clear = () => { cur = '0'; prev = null; op = null; justEq = false; };
+  const pct = () => { cur = fmt(Number(cur) / 100); };
+
+  document.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.num !== undefined) inputNum(btn.dataset.num);
+      else if (btn.dataset.op) setOp(btn.dataset.op);
+      else if (btn.dataset.act === 'dot') inputDot();
+      else if (btn.dataset.act === 'eq') equals();
+      else if (btn.dataset.act === 'back') back();
+      else if (btn.dataset.act === 'clear') clear();
+      else if (btn.dataset.act === 'pct') pct();
+      render();
+    });
+  });
+
+  document.addEventListener('keydown', e => {
+    const k = e.key;
+    if (/^[0-9]$/.test(k)) inputNum(k);
+    else if (k === '.') inputDot();
+    else if (k === '+' || k === '-' || k === '*' || k === '/') setOp(k);
+    else if (k === 'Enter' || k === '=') equals();
+    else if (k === 'Backspace') back();
+    else if (k === 'Escape') clear();
+    else if (k === '%') pct();
+    else return;
+    e.preventDefault();
+    render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
